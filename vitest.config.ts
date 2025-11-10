@@ -8,12 +8,20 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      'e2e/**',
+      '**/*.e2e.spec.ts',
+      'playwright.config.ts',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/**',
         'dist/**',
+        'e2e/**',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData.ts',
