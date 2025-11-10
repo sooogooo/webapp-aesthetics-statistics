@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { GoogleGenAI, Chat } from '@google/genai';
+import React, { useState, useEffect, useRef } from 'react';
 import type { ChatMessage, Distribution, ChatHistoryItem } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -7,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import { useLoading } from '../contexts/LoadingContext';
 import { useChat } from '../contexts/ChatContext';
 import Feedback from './Feedback';
+import { apiService } from '../services/api';
 
 interface ChatbotProps {
   selectedDistribution: Distribution;
@@ -17,7 +17,6 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chat, setChat] = useState<Chat | null>(null);
   const [history, setHistory] = useLocalStorage<ChatHistoryItem[]>('chatHistory', []);
   const [activeView, setActiveView] = useState<'chat' | 'history'>('chat');
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -26,19 +25,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
   const { startLoading, stopLoading } = useLoading();
   const lastTriggerRef = useRef(0);
 
-  const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY }), []);
-
   const startNewChat = () => {
-    const newChat = ai.chats.create({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: `你是一位专为医美行业从业者服务的AI助教，精通统计学和数据分析。你的任务是用通俗易懂的中文，清晰、简洁地解释各种统计学概念。
-        当前用户正在学习“${selectedDistribution.name}”，请围绕这个主题进行回答。
-        请根据用户的设定调整你的回答风格：风格=${settings.aiStyle}，长度=${settings.aiLength}。
-        非必要情况请勿使用英文。`,
-      },
-    });
-    setChat(newChat);
     const newId = `chat_${Date.now()}`;
     setMessages([{ role: 'model', text: `你好！我看到你正在学习 ${selectedDistribution.name}。有什么可以帮你的吗？`, id: `${newId}-m-0` }]);
     setCurrentChatId(newId);
@@ -64,7 +51,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
   useEffect(scrollToBottom, [messages]);
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || isLoading || !chat) return;
+    if (!messageText.trim() || isLoading) return;
 
     const userMessage: ChatMessage = { role: 'user', text: messageText, id: `${currentChatId}-u-${messages.length}` };
     const updatedMessages = [...messages, userMessage];
@@ -74,7 +61,23 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
     startLoading();
 
     try {
-      const response = await chat.sendMessage({ message: messageText });
+      const systemInstruction = `你是一位专为医美行业从业者服务的AI助教，精通统计学和数据分析。你的任务是用通俗易懂的中文，清晰、简洁地解释各种统计学概念。
+        当前用户正在学习"${selectedDistribution.name}"，请围绕这个主题进行回答。
+        请根据用户的设定调整你的回答风格：风格=${settings.aiStyle}，长度=${settings.aiLength}。
+        非必要情况请勿使用英文。`;
+
+      // Get chat history for context (excluding the initial greeting)
+      const chatHistory = messages.slice(1).map(msg => ({
+        role: msg.role,
+        text: msg.text
+      }));
+
+      const response = await apiService.chat({
+        message: messageText,
+        systemInstruction,
+        chatHistory
+      });
+
       const modelMessage: ChatMessage = { role: 'model', text: response.text, id: `${currentChatId}-m-${updatedMessages.length}` };
       const finalMessages = [...updatedMessages, modelMessage];
       setMessages(finalMessages);
@@ -90,7 +93,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
 
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage: ChatMessage = { role: 'model', text: '抱歉，我遇到了一些问题，请稍后再试。' };
+      const errorMessage: ChatMessage = { role: 'model', text: `抱歉，我遇到了一些问题：${error instanceof Error ? error.message : '请稍后再试'}` };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);

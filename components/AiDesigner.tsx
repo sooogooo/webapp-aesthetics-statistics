@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
 import { useLoading } from '../contexts/LoadingContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import type { DesignHistoryItem } from '../types';
 import { promptData, modifierChips } from '../data/promptTemplates';
 import Feedback from './Feedback';
+import { apiService } from '../services/api';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -87,45 +87,16 @@ const AiDesigner: React.FC = () => {
     setGeneratedImage(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      let base64ImageBytes: string;
+      const response = await apiService.generateImage({
+        prompt: finalPrompt,
+        aspectRatio: aspectRatio,
+        referenceImage: referenceImage ? {
+          base64: referenceImage.base64,
+          mimeType: referenceImage.file.type
+        } : undefined
+      });
 
-      if (referenceImage) {
-        const generationPrompt = `Generate a new image of: "${finalPrompt}". Use the provided image as strong inspiration for the overall style, color palette, and composition. The new image should be professional, elegant, and suitable for a medical aesthetics clinic, evoking feelings of trust and beauty with soft, natural lighting.`;
-        
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-image',
-          contents: {
-            parts: [
-              { inlineData: { data: referenceImage.base64, mimeType: referenceImage.file.type } },
-              { text: generationPrompt },
-            ],
-          },
-          config: {
-            responseModalities: [Modality.IMAGE],
-          },
-        });
-        
-        const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData);
-        if (imagePart?.inlineData) {
-            base64ImageBytes = imagePart.inlineData.data;
-        } else {
-            throw new Error("AI did not return an image. It might have refused the request.");
-        }
-      } else {
-        const fullPrompt = `md_prompt: A professional, minimalist, elegant, clean, high-end image for a medical aesthetics clinic. ${finalPrompt}. The image should evoke feelings of trust, science, and beauty. Use soft, natural lighting.`;
-        const response = await ai.models.generateImages({
-          model: 'imagen-4.0-generate-001',
-          prompt: fullPrompt,
-          config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/png',
-            aspectRatio,
-          },
-        });
-        base64ImageBytes = response.generatedImages[0].image.imageBytes;
-      }
-
+      const base64ImageBytes = response.imageData;
       setGeneratedImage(base64ImageBytes);
 
       const newItem: DesignHistoryItem = {
@@ -138,7 +109,7 @@ const AiDesigner: React.FC = () => {
 
     } catch (e) {
       console.error("Image generation failed:", e);
-      setError(`图片生成失败。请检查您的提示词或稍后再试。(错误: ${e instanceof Error ? e.message : String(e)})`);
+      setError(`图片生成失败。${e instanceof Error ? e.message : '请检查您的提示词或稍后再试。'}`);
     } finally {
       setIsLoading(false);
       stopLoading();

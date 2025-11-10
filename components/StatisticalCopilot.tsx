@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import type { ChatMessage } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
@@ -7,6 +6,7 @@ import { Chart } from 'react-chartjs-2';
 import { useLoading } from '../contexts/LoadingContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import Feedback from './Feedback';
+import { apiService } from '../services/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -188,32 +188,32 @@ const StatisticalCopilot: React.FC = () => {
         startLoading();
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const contents: any[] = [{ text: prompt }];
-
-            if (uploadedFile) {
-                const base64Data = await blobToBase64(uploadedFile);
-                contents.unshift({
-                    inlineData: {
-                        mimeType: uploadedFile.type,
-                        data: base64Data,
-                    },
-                });
-            }
-
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-pro',
-                contents: { parts: contents },
-                config: {
-                    systemInstruction: `你是一位顶级的医美行业数据科学家和商业策略师。你的任务是与用户进行深度对话，解决他们关于运营、管理和市场营销的复杂问题。
+            const systemInstruction = `你是一位顶级的医美行业数据科学家和商业策略师。你的任务是与用户进行深度对话，解决他们关于运营、管理和市场营销的复杂问题。
 - **主动引导**：如果用户的问题模糊，要主动追问，以澄清其真实需求。
 - **提供框架**：给出解决问题的结构化框架和 actionable 的建议。
 - **数据驱动**：强调数据的重要性，并说明需要哪些数据来做出决策。
 - **图表生成**：如果用户要求可视化或你认为图表能更好地说明问题，请在回答的末尾，使用\`\`\`json ... \`\`\`代码块提供一个严格遵循Chart.js v4.x规范的JSON对象。JSON应包含'type', 'data', 和 'options' 字段。不要在代码块前后添加任何额外说明。
-- **结合文件**：如果用户上传了文件，你的所有分析都必须基于该文件内容。`
-                }
-            });
-            
+- **结合文件**：如果用户上传了文件，你的所有分析都必须基于该文件内容。`;
+
+            let response;
+
+            if (uploadedFile) {
+                // Use file analysis endpoint
+                const fileContent = await uploadedFile.text();
+                response = await apiService.analyzeFile({
+                    fileContent,
+                    fileName: uploadedFile.name,
+                    prompt,
+                    systemInstruction
+                });
+            } else {
+                // Use regular chat endpoint
+                response = await apiService.chat({
+                    message: prompt,
+                    systemInstruction
+                });
+            }
+
             let responseText = response.text;
             let chartData = null;
             const chartJsonRegex = /```json\n([\s\S]*?)\n```/;
@@ -233,11 +233,12 @@ const StatisticalCopilot: React.FC = () => {
 
         } catch (error) {
             console.error("AI 操作失败:", error);
-            const errorMessage: ChatMessage = { role: 'model', text: '抱歉，分析时遇到问题，请检查您的问题或文件，然后重试。', id: `copilot-e-${Date.now()}` };
+            const errorText = error instanceof Error ? error.message : '抱歉，分析时遇到问题，请检查您的问题或文件，然后重试。';
+            const errorMessage: ChatMessage = { role: 'model', text: errorText, id: `copilot-e-${Date.now()}` };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
-            setUploadedFile(null); 
+            setUploadedFile(null);
             if(fileInputRef.current) fileInputRef.current.value = '';
             stopLoading();
         }

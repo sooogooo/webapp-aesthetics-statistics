@@ -1,19 +1,11 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
-import ContentDisplay from './components/ContentDisplay';
 import Chatbot from './components/Chatbot';
 import { distributionsData } from './data/distributions';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import StatisticalCopilot from './components/StatisticalCopilot';
-import AiDesigner from './components/AiDesigner';
-import IntelligentArticle from './components/IntelligentArticle';
-// FIX: Changed to a named import because Dashboard does not have a default export.
-import { Dashboard } from './components/Dashboard';
-import LearningPaths from './components/LearningPaths';
-import LearningPlan from './components/LearningPlan';
 import type { Page } from './types';
 import Breadcrumbs from './components/Breadcrumbs';
 import { LoadingProvider } from './contexts/LoadingContext';
@@ -22,9 +14,19 @@ import { ChatProvider } from './contexts/ChatContext';
 import useLocalStorage from './hooks/useLocalStorage';
 import UserGuide from './components/UserGuide';
 import { UserHistoryProvider } from './contexts/UserHistoryContext';
-import DecisionGuide from './components/DecisionGuide';
 import { learningPathData } from './data/learningPaths';
 import QuickReturn from './components/QuickReturn';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy load page components for better performance
+const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
+const ContentDisplay = lazy(() => import('./components/ContentDisplay'));
+const StatisticalCopilot = lazy(() => import('./components/StatisticalCopilot'));
+const AiDesigner = lazy(() => import('./components/AiDesigner'));
+const IntelligentArticle = lazy(() => import('./components/IntelligentArticle'));
+const LearningPaths = lazy(() => import('./components/LearningPaths'));
+const LearningPlan = lazy(() => import('./components/LearningPlan'));
+const DecisionGuide = lazy(() => import('./components/DecisionGuide'));
 
 
 const AppContent: React.FC = () => {
@@ -55,27 +57,45 @@ const AppContent: React.FC = () => {
     return distributionsData.find(d => d.id === selectedId) || distributionsData[0];
   }, [selectedId]);
 
+  // Loading fallback component
+  const PageLoader = () => (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-12 h-12 border-4 border-[color:rgb(var(--color-primary)/0.2)] border-t-[color:rgb(var(--color-primary))] rounded-full animate-spin"></div>
+        <p className="text-sm text-[color:var(--color-text-muted)]">加载中...</p>
+      </div>
+    </div>
+  );
+
   const mainContent = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
-      case 'models':
-        return <ContentDisplay distribution={selectedDistribution} distributions={distributionsData} setSelectedId={setSelectedId} />;
-      case 'copilot':
-        return <StatisticalCopilot />;
-      case 'designer':
-        return <AiDesigner />;
-      case 'article':
-        return <IntelligentArticle distribution={selectedDistribution} distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
-      case 'paths':
-        return <LearningPaths setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
-      case 'plan':
-        return <LearningPlan />;
-      case 'guide':
-        return <DecisionGuide distributions={distributionsData} learningPaths={learningPathData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
-      default:
-        return <Dashboard distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
-    }
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          {(() => {
+            switch (currentPage) {
+              case 'dashboard':
+                return <Dashboard distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+              case 'models':
+                return <ContentDisplay distribution={selectedDistribution} distributions={distributionsData} setSelectedId={setSelectedId} />;
+              case 'copilot':
+                return <StatisticalCopilot />;
+              case 'designer':
+                return <AiDesigner />;
+              case 'article':
+                return <IntelligentArticle distribution={selectedDistribution} distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+              case 'paths':
+                return <LearningPaths setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+              case 'plan':
+                return <LearningPlan />;
+              case 'guide':
+                return <DecisionGuide distributions={distributionsData} learningPaths={learningPathData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+              default:
+                return <Dashboard distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+            }
+          })()}
+        </Suspense>
+      </ErrorBoundary>
+    );
   };
 
   const handleCloseGuide = () => {
