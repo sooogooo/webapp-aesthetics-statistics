@@ -1,0 +1,38 @@
+# Code Owners
+#
+# This file defines who is responsible for reviewing specific parts of the codebase.
+# When a PR modifies these files, the listed owners will automatically be requested for review.
+#
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+* @your-github-username
+
+# Frontend Components
+/components/ @your-github-username
+/hooks/ @your-github-username
+/contexts/ @your-github-username
+
+# Backend API
+/api/ @your-github-username
+
+# Configuration Files
+*.config.ts @your-github-username
+*.config.js @your-github-username
+package.json @your-github-username
+tsconfig.json @your-github-username
+
+# CI/CD
+/.github/ @your-github-username
+
+# Documentation
+/*.md @your-github-username
+/docs/ @your-github-username
+
+# Data Files
+/data/ @your-github-username
+
+# Tests
+*.test.ts @your-github-username
+*.test.tsx @your-github-username
+/test/ @your-github-username

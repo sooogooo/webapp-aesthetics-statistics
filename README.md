@@ -1,5 +1,11 @@
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+
+[![CI](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/ci.yml)
+[![Deploy](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/deploy.yml/badge.svg)](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/deploy.yml)
+[![codecov](https://codecov.io/gh/your-username/webapp-aesthetics-statistics/branch/main/graph/badge.svg)](https://codecov.io/gh/your-username/webapp-aesthetics-statistics)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 </div>
 
 # 医美统计学应用指南
@@ -8,9 +14,16 @@ An interactive React + TypeScript web application focused on probability distrib
 
 View your app in AI Studio: https://ai.studio/apps/drive/1hRIiXCx8xjKqJubwnQwqUtw_-28uDaBq
 
+## 🚀 Quick Start
+
+**Live Demo**: [Coming Soon]
+**Documentation**: See [CLAUDE.md](CLAUDE.md) for detailed architecture
+**CI/CD**: Automated testing and deployment via GitHub Actions
+
 ## Architecture
 
 This project uses a **client-server architecture** to protect API keys:
+
 - **Frontend**: React app running on port 3000
 - **Backend API**: Express server running on port 3001 (proxies requests to Gemini API)
 
@@ -38,6 +51,7 @@ cd ..
 ### 3. Configure Environment Variables
 
 **Frontend (.env.local):**
+
 ```bash
 # For AiDesigner component (temporary, will be migrated)
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -47,12 +61,14 @@ VITE_API_URL=http://localhost:3001
 ```
 
 **Backend (api/.env):**
+
 ```bash
 cp api/.env.example api/.env
 # Edit api/.env and add your GEMINI_API_KEY
 ```
 
 ⚠️ **SECURITY WARNING**:
+
 - **NEVER commit `.env` or `.env.local` files to Git**
 - The `.gitignore` file is configured to prevent this, but always double-check
 - If you accidentally expose your API key, rotate it immediately in Google AI Studio
@@ -62,6 +78,7 @@ cp api/.env.example api/.env
 You need to run **both** the frontend and backend servers:
 
 ### Terminal 1 - Backend API Server
+
 ```bash
 cd api
 npm run dev
@@ -70,6 +87,7 @@ npm run dev
 The API server will start on http://localhost:3001
 
 ### Terminal 2 - Frontend Development Server
+
 ```bash
 npm run dev
 ```
@@ -125,6 +143,7 @@ webapp-aesthetics-statistics/
 ## Available Scripts
 
 **Frontend:**
+
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run build:analyze` - Build with bundle analysis
@@ -138,6 +157,7 @@ webapp-aesthetics-statistics/
 - `npm run format:check` - Check code formatting
 
 **Backend:**
+
 - `npm run dev` - Start development server with hot reload
 - `npm start` - Start production server
 
