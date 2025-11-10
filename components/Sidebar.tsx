@@ -21,7 +21,15 @@ const groupTitles: { [key: number]: string } = {
   7: '决策工具箱',
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelectedId, isOpen, setIsOpen, setCurrentPage, currentPage }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  distributions,
+  selectedId,
+  setSelectedId,
+  isOpen,
+  setIsOpen,
+  setCurrentPage,
+  currentPage,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredDistributions = useMemo(() => {
@@ -30,23 +38,27 @@ const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelecte
 
     const lowercasedTerm = trimmedSearchTerm.toLowerCase();
 
-    return distributions.filter(dist => 
-      dist.name.toLowerCase().includes(lowercasedTerm) ||
-      dist.id.toString().includes(trimmedSearchTerm) ||
-      dist.title.toLowerCase().includes(lowercasedTerm) ||
-      dist.description.toLowerCase().includes(lowercasedTerm) ||
-      dist.takeaway.toLowerCase().includes(lowercasedTerm) ||
-      dist.application.some(app => app.toLowerCase().includes(lowercasedTerm))
+    return distributions.filter(
+      (dist) =>
+        dist.name.toLowerCase().includes(lowercasedTerm) ||
+        dist.id.toString().includes(trimmedSearchTerm) ||
+        dist.title.toLowerCase().includes(lowercasedTerm) ||
+        dist.description.toLowerCase().includes(lowercasedTerm) ||
+        dist.takeaway.toLowerCase().includes(lowercasedTerm) ||
+        dist.application.some((app) => app.toLowerCase().includes(lowercasedTerm))
     );
   }, [distributions, searchTerm]);
 
   // FIX: Explicitly convert numeric group to string for object key to avoid potential type issues.
-  const groupedDistributions = filteredDistributions.reduce<Record<string, Distribution[]>>((acc, dist) => {
-    const group = dist.group.toString();
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(dist);
-    return acc;
-  }, {});
+  const groupedDistributions = filteredDistributions.reduce<Record<string, Distribution[]>>(
+    (acc, dist) => {
+      const group = dist.group.toString();
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(dist);
+      return acc;
+    },
+    {}
+  );
 
   const handleSelectDistribution = (id: number) => {
     setSelectedId(id);
@@ -63,7 +75,11 @@ const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelecte
     }
   };
 
-  const NavItem: React.FC<{page: Page, icon: string, children: React.ReactNode}> = ({page, icon, children}) => {
+  const NavItem: React.FC<{ page: Page; icon: string; children: React.ReactNode }> = ({
+    page,
+    icon,
+    children,
+  }) => {
     const isActive = currentPage === page;
     return (
       <li>
@@ -79,16 +95,18 @@ const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelecte
           <span>{children}</span>
         </button>
       </li>
-    )
-  }
+    );
+  };
 
   const sidebarContent = (
     <>
-       <div className="p-4 border-b border-[color:var(--color-border)]">
+      <div className="p-4 border-b border-[color:var(--color-border)]">
         <div className="flex items-center space-x-2">
-          <img src="https://docs.bccsw.cn/logo.png" alt="Logo" className="h-8 w-8 object-contain"/>
+          <img src="https://docs.bccsw.cn/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
           <div>
-            <h1 className="text-base font-bold text-[color:var(--color-text-base)]">统计学应用指南</h1>
+            <h1 className="text-base font-bold text-[color:var(--color-text-base)]">
+              统计学应用指南
+            </h1>
             <p className="text-xs text-[color:var(--color-text-muted)]">医美行业版</p>
           </div>
         </div>
@@ -96,20 +114,38 @@ const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelecte
 
       <nav className="px-4 py-3 border-b border-[color:var(--color-border)]">
         <ul className="space-y-1">
-          <NavItem page="dashboard" icon="dashboard">决策仪表盘</NavItem>
-          <NavItem page="models" icon="dataset">数据模型</NavItem>
-          <NavItem page="copilot" icon="query_stats">智能统计</NavItem>
-          <NavItem page="paths" icon="school">学习路径</NavItem>
-          <NavItem page="plan" icon="checklist">我的学习计划</NavItem>
-          <NavItem page="guide" icon="lightbulb">决策参谋</NavItem>
-          <NavItem page="designer" icon="palette">AI 设计室</NavItem>
-          <NavItem page="article" icon="article">专题文章</NavItem>
+          <NavItem page="dashboard" icon="dashboard">
+            决策仪表盘
+          </NavItem>
+          <NavItem page="models" icon="dataset">
+            数据模型
+          </NavItem>
+          <NavItem page="copilot" icon="query_stats">
+            智能统计
+          </NavItem>
+          <NavItem page="paths" icon="school">
+            学习路径
+          </NavItem>
+          <NavItem page="plan" icon="checklist">
+            我的学习计划
+          </NavItem>
+          <NavItem page="guide" icon="lightbulb">
+            决策参谋
+          </NavItem>
+          <NavItem page="designer" icon="palette">
+            AI 设计室
+          </NavItem>
+          <NavItem page="article" icon="article">
+            专题文章
+          </NavItem>
         </ul>
       </nav>
 
       <div className="p-4">
         <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--color-text-muted)] text-lg">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--color-text-muted)] text-lg">
+            search
+          </span>
           <input
             type="text"
             placeholder="在模型中搜索..."
@@ -122,30 +158,32 @@ const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelecte
       <nav className="flex-1 px-4 pb-4 overflow-y-auto">
         {Object.keys(groupedDistributions).length > 0 ? (
           <ul>
-            {(Object.entries(groupedDistributions) as [string, Distribution[]][]).sort(([a], [b]) => parseInt(a) - parseInt(b)).map(([group, dists]) => (
-              <li key={group} className="mb-4">
-                <h2 className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wider mb-2 px-2">
-                  {groupTitles[parseInt(group, 10)]}
-                </h2>
-                <ul>
-                  {dists.map((dist) => (
-                    <li key={dist.id}>
-                      <button
-                        onClick={() => handleSelectDistribution(dist.id)}
-                        className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-all duration-200 flex items-center space-x-2 ${
-                          selectedId === dist.id && currentPage === 'models'
-                            ? 'bg-[color:rgb(var(--color-primary)/0.1)] text-[color:rgb(var(--color-primary))] font-medium'
-                            : 'text-[color:var(--color-text-muted)] hover:bg-[color:var(--color-bg-muted)]'
-                        }`}
-                      >
-                        <span className="opacity-60 text-xs w-5 text-center">{dist.id}</span>
-                        <span>{dist.name}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
+            {(Object.entries(groupedDistributions) as [string, Distribution[]][])
+              .sort(([a], [b]) => parseInt(a) - parseInt(b))
+              .map(([group, dists]) => (
+                <li key={group} className="mb-4">
+                  <h2 className="text-xs font-semibold text-[color:var(--color-text-muted)] uppercase tracking-wider mb-2 px-2">
+                    {groupTitles[parseInt(group, 10)]}
+                  </h2>
+                  <ul>
+                    {dists.map((dist) => (
+                      <li key={dist.id}>
+                        <button
+                          onClick={() => handleSelectDistribution(dist.id)}
+                          className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-all duration-200 flex items-center space-x-2 ${
+                            selectedId === dist.id && currentPage === 'models'
+                              ? 'bg-[color:rgb(var(--color-primary)/0.1)] text-[color:rgb(var(--color-primary))] font-medium'
+                              : 'text-[color:var(--color-text-muted)] hover:bg-[color:var(--color-bg-muted)]'
+                          }`}
+                        >
+                          <span className="opacity-60 text-xs w-5 text-center">{dist.id}</span>
+                          <span>{dist.name}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
           </ul>
         ) : (
           <div className="text-center p-4 text-sm text-[color:var(--color-text-muted)]">
@@ -158,8 +196,15 @@ const Sidebar: React.FC<SidebarProps> = ({ distributions, selectedId, setSelecte
 
   return (
     <>
-       {isOpen && <div onClick={() => setIsOpen(false)} className="fixed inset-0 bg-black/90 backdrop-blur-sm z-30 md:hidden transition-opacity" />}
-      <aside className={`fixed top-0 left-0 w-72 h-full bg-white border-r border-[color:var(--color-border)] flex flex-col transition-transform duration-300 ease-in-out z-40 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-30 md:hidden transition-opacity"
+        />
+      )}
+      <aside
+        className={`fixed top-0 left-0 w-72 h-full bg-white border-r border-[color:var(--color-border)] flex flex-col transition-transform duration-300 ease-in-out z-40 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
         {sidebarContent}
       </aside>
     </>

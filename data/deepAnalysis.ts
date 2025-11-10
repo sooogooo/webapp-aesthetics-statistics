@@ -1,4 +1,3 @@
-
 export const deepAnalysisData: Record<number, string> = {
   1: `
 #### 核心洞察 (Core Insight)

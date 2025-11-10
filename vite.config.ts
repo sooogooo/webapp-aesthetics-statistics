@@ -47,12 +47,9 @@ export default defineConfig(({ mode }) => {
               // Separate markdown
               'markdown-vendor': ['react-markdown'],
               // Separate large data files
-              'data': [
-                './data/distributions',
-                './data/chartData',
-                './data/learningPaths',
-                './data/deepAnalysis'
-              ]
+              'data': ['./data/chartData', './data/learningPaths', './data/deepAnalysis'],
+              // Distribution index is small and should be in main bundle
+              // Group files will be lazy-loaded dynamically
             }
           }
         },

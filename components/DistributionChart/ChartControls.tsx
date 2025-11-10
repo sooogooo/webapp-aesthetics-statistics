@@ -43,7 +43,10 @@ const ChartControls: React.FC<ChartControlsProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="text-xs">
           <label className="font-medium">
-            均值 μ: <span className="font-bold text-[color:rgb(var(--color-primary))]">{normalParams.mu.toFixed(1)}</span>
+            均值 μ:{' '}
+            <span className="font-bold text-[color:rgb(var(--color-primary))]">
+              {normalParams.mu.toFixed(1)}
+            </span>
           </label>
           <input
             type="range"
@@ -51,13 +54,16 @@ const ChartControls: React.FC<ChartControlsProps> = ({
             max="5"
             step="0.1"
             value={normalParams.mu}
-            onChange={(e) => setNormalParams(p => ({ ...p, mu: +e.target.value }))}
+            onChange={(e) => setNormalParams((p) => ({ ...p, mu: +e.target.value }))}
             className="w-full"
           />
         </div>
         <div className="text-xs">
           <label className="font-medium">
-            标准差 σ: <span className="font-bold text-[color:rgb(var(--color-primary))]">{normalParams.sigma.toFixed(1)}</span>
+            标准差 σ:{' '}
+            <span className="font-bold text-[color:rgb(var(--color-primary))]">
+              {normalParams.sigma.toFixed(1)}
+            </span>
           </label>
           <input
             type="range"
@@ -65,7 +71,7 @@ const ChartControls: React.FC<ChartControlsProps> = ({
             max="5"
             step="0.1"
             value={normalParams.sigma}
-            onChange={(e) => setNormalParams(p => ({ ...p, sigma: +e.target.value }))}
+            onChange={(e) => setNormalParams((p) => ({ ...p, sigma: +e.target.value }))}
             className="w-full"
           />
         </div>
@@ -78,7 +84,10 @@ const ChartControls: React.FC<ChartControlsProps> = ({
     sliders = (
       <div className="text-xs">
         <label className="font-medium">
-          平均发生率 λ: <span className="font-bold text-[color:rgb(var(--color-primary))]">{poissonLambda.toFixed(1)}</span>
+          平均发生率 λ:{' '}
+          <span className="font-bold text-[color:rgb(var(--color-primary))]">
+            {poissonLambda.toFixed(1)}
+          </span>
         </label>
         <input
           type="range"
@@ -99,7 +108,10 @@ const ChartControls: React.FC<ChartControlsProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="text-xs">
           <label className="font-medium">
-            α (成功+1): <span className="font-bold text-[color:rgb(var(--color-primary))]">{betaParams.alpha.toFixed(1)}</span>
+            α (成功+1):{' '}
+            <span className="font-bold text-[color:rgb(var(--color-primary))]">
+              {betaParams.alpha.toFixed(1)}
+            </span>
           </label>
           <input
             type="range"
@@ -107,13 +119,16 @@ const ChartControls: React.FC<ChartControlsProps> = ({
             max="10"
             step="0.1"
             value={betaParams.alpha}
-            onChange={(e) => setBetaParams(p => ({ ...p, alpha: +e.target.value }))}
+            onChange={(e) => setBetaParams((p) => ({ ...p, alpha: +e.target.value }))}
             className="w-full"
           />
         </div>
         <div className="text-xs">
           <label className="font-medium">
-            β (失败+1): <span className="font-bold text-[color:rgb(var(--color-primary))]">{betaParams.beta.toFixed(1)}</span>
+            β (失败+1):{' '}
+            <span className="font-bold text-[color:rgb(var(--color-primary))]">
+              {betaParams.beta.toFixed(1)}
+            </span>
           </label>
           <input
             type="range"
@@ -121,7 +136,7 @@ const ChartControls: React.FC<ChartControlsProps> = ({
             max="10"
             step="0.1"
             value={betaParams.beta}
-            onChange={(e) => setBetaParams(p => ({ ...p, beta: +e.target.value }))}
+            onChange={(e) => setBetaParams((p) => ({ ...p, beta: +e.target.value }))}
             className="w-full"
           />
         </div>
@@ -132,9 +147,7 @@ const ChartControls: React.FC<ChartControlsProps> = ({
   return (
     <div className="mt-4 border-t border-slate-200 pt-4">
       <h3 className="text-center font-bold text-slate-700 mb-2">参数实时模拟</h3>
-      <div className="bg-slate-50/50 p-4 rounded-lg">
-        {sliders}
-      </div>
+      <div className="bg-slate-50/50 p-4 rounded-lg">{sliders}</div>
     </div>
   );
 };

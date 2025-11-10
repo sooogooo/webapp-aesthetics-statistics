@@ -1,8 +1,12 @@
-
 import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
 import Chatbot from './components/Chatbot';
-import { distributionsData } from './data/distributions';
+import {
+  getDistributionIndex,
+  loadDistribution,
+  type DistributionIndexEntry,
+} from './services/distributionLoader';
+import type { Distribution } from './types';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -19,7 +23,9 @@ import QuickReturn from './components/QuickReturn';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load page components for better performance
-const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
+const Dashboard = lazy(() =>
+  import('./components/Dashboard').then((module) => ({ default: module.Dashboard }))
+);
 const ContentDisplay = lazy(() => import('./components/ContentDisplay'));
 const StatisticalCopilot = lazy(() => import('./components/StatisticalCopilot'));
 const AiDesigner = lazy(() => import('./components/AiDesigner'));
@@ -27,7 +33,6 @@ const IntelligentArticle = lazy(() => import('./components/IntelligentArticle'))
 const LearningPaths = lazy(() => import('./components/LearningPaths'));
 const LearningPlan = lazy(() => import('./components/LearningPlan'));
 const DecisionGuide = lazy(() => import('./components/DecisionGuide'));
-
 
 const AppContent: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number>(1);
@@ -39,23 +44,52 @@ const AppContent: React.FC = () => {
   const [hasSeenGuide, setHasSeenGuide] = useLocalStorage('hasSeenUserGuide', false);
   const [isGuideOpen, setIsGuideOpen] = useState(!hasSeenGuide);
 
+  // Distribution data loading
+  const [distributionsData, setDistributionsData] = useState<Distribution[]>([]);
+  const [isLoadingDistributions, setIsLoadingDistributions] = useState(true);
+
+  // Load distribution index first, then all groups in parallel
+  useEffect(() => {
+    const loadAllDistributions = async () => {
+      try {
+        // Load all groups in parallel (7 groups, 1-8KB each)
+        const groupPromises = [1, 2, 3, 4, 5, 6, 7].map((groupNum) =>
+          import(`./data/distributions/group-${groupNum}.json`).then((m) => m.default),
+        );
+
+        const groups = await Promise.all(groupPromises);
+        const allDistributions = groups.flat();
+
+        setDistributionsData(allDistributions);
+        setIsLoadingDistributions(false);
+      } catch (error) {
+        console.error('Failed to load distributions:', error);
+        setIsLoadingDistributions(false);
+      }
+    };
+
+    loadAllDistributions();
+  }, []);
 
   useEffect(() => {
     // Check for modelId in URL on initial load to support sharing
-    const params = new URLSearchParams(window.location.search);
-    const modelId = params.get('modelId');
-    if (modelId) {
-      const id = parseInt(modelId, 10);
-      if (!isNaN(id) && distributionsData.some(d => d.id === id)) {
-        setSelectedId(id);
-        setCurrentPage('models');
+    if (!isLoadingDistributions && distributionsData.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const modelId = params.get('modelId');
+      if (modelId) {
+        const id = parseInt(modelId, 10);
+        if (!isNaN(id) && distributionsData.some((d) => d.id === id)) {
+          setSelectedId(id);
+          setCurrentPage('models');
+        }
       }
     }
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [isLoadingDistributions, distributionsData]);
 
   const selectedDistribution = useMemo(() => {
-    return distributionsData.find(d => d.id === selectedId) || distributionsData[0];
-  }, [selectedId]);
+    if (distributionsData.length === 0) return null;
+    return distributionsData.find((d) => d.id === selectedId) || distributionsData[0];
+  }, [selectedId, distributionsData]);
 
   // Loading fallback component
   const PageLoader = () => (
@@ -68,29 +102,72 @@ const AppContent: React.FC = () => {
   );
 
   const mainContent = () => {
+    // Show loading state while distributions are being loaded
+    if (isLoadingDistributions) {
+      return <PageLoader />;
+    }
+
     return (
       <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
           {(() => {
             switch (currentPage) {
               case 'dashboard':
-                return <Dashboard distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+                return (
+                  <Dashboard
+                    distributions={distributionsData}
+                    setCurrentPage={setCurrentPage}
+                    setSelectedId={setSelectedId}
+                  />
+                );
               case 'models':
-                return <ContentDisplay distribution={selectedDistribution} distributions={distributionsData} setSelectedId={setSelectedId} />;
+                return (
+                  <ContentDisplay
+                    distribution={selectedDistribution}
+                    distributions={distributionsData}
+                    setSelectedId={setSelectedId}
+                  />
+                );
               case 'copilot':
                 return <StatisticalCopilot />;
               case 'designer':
                 return <AiDesigner />;
               case 'article':
-                return <IntelligentArticle distribution={selectedDistribution} distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+                return (
+                  <IntelligentArticle
+                    distribution={selectedDistribution}
+                    distributions={distributionsData}
+                    setCurrentPage={setCurrentPage}
+                    setSelectedId={setSelectedId}
+                  />
+                );
               case 'paths':
-                return <LearningPaths setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+                return (
+                  <LearningPaths
+                    setCurrentPage={setCurrentPage}
+                    setSelectedId={setSelectedId}
+                    distributions={distributionsData}
+                  />
+                );
               case 'plan':
                 return <LearningPlan />;
               case 'guide':
-                return <DecisionGuide distributions={distributionsData} learningPaths={learningPathData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+                return (
+                  <DecisionGuide
+                    distributions={distributionsData}
+                    learningPaths={learningPathData}
+                    setCurrentPage={setCurrentPage}
+                    setSelectedId={setSelectedId}
+                  />
+                );
               default:
-                return <Dashboard distributions={distributionsData} setCurrentPage={setCurrentPage} setSelectedId={setSelectedId} />;
+                return (
+                  <Dashboard
+                    distributions={distributionsData}
+                    setCurrentPage={setCurrentPage}
+                    setSelectedId={setSelectedId}
+                  />
+                );
             }
           })()}
         </Suspense>
@@ -112,7 +189,7 @@ const AppContent: React.FC = () => {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
       />
-      
+
       <div className="flex flex-1">
         <Sidebar
           distributions={distributionsData}
@@ -130,9 +207,7 @@ const AppContent: React.FC = () => {
               setCurrentPage={setCurrentPage}
               selectedDistribution={selectedDistribution}
             />
-            <main>
-              {mainContent()}
-            </main>
+            <main>{mainContent()}</main>
           </div>
         </div>
       </div>

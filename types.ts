@@ -1,5 +1,12 @@
-
-export type Page = 'dashboard' | 'models' | 'copilot' | 'designer' | 'article' | 'paths' | 'plan' | 'guide';
+export type Page =
+  | 'dashboard'
+  | 'models'
+  | 'copilot'
+  | 'designer'
+  | 'article'
+  | 'paths'
+  | 'plan'
+  | 'guide';
 
 export interface Distribution {
   id: number;
@@ -89,11 +96,11 @@ export interface QuizQuestion {
 }
 
 export interface UserHistory {
-    viewedModelIds: number[];
-    completedPathSteps: Record<string, number[]>;
+  viewedModelIds: number[];
+  completedPathSteps: Record<string, number[]>;
 }
 
 export interface EnhancedApplication {
-    original: string;
-    enhancement: string;
+  original: string;
+  enhancement: string;
 }

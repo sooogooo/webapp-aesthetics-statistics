@@ -17,22 +17,21 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setInitialInput = (input: string) => {
     _setInitialInput(input);
-    setInputTrigger(prev => prev + 1);
+    setInputTrigger((prev) => prev + 1);
   };
-  
-  const value = useMemo(() => ({
-    initialInput,
-    setInitialInput,
-    isChatOpen,
-    setIsChatOpen,
-    inputTrigger
-  }), [initialInput, isChatOpen, inputTrigger]);
 
-  return (
-    <ChatContext.Provider value={value}>
-      {children}
-    </ChatContext.Provider>
+  const value = useMemo(
+    () => ({
+      initialInput,
+      setInitialInput,
+      isChatOpen,
+      setIsChatOpen,
+      inputTrigger,
+    }),
+    [initialInput, isChatOpen, inputTrigger]
   );
+
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 };
 
 export const useChat = () => {

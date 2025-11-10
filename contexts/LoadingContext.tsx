@@ -12,24 +12,23 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [loadingCount, setLoadingCount] = useState(0);
 
   const startLoading = useCallback(() => {
-    setLoadingCount(prevCount => prevCount + 1);
+    setLoadingCount((prevCount) => prevCount + 1);
   }, []);
 
   const stopLoading = useCallback(() => {
-    setLoadingCount(prevCount => Math.max(0, prevCount - 1));
+    setLoadingCount((prevCount) => Math.max(0, prevCount - 1));
   }, []);
 
-  const value = useMemo(() => ({
-    isLoading: loadingCount > 0,
-    startLoading,
-    stopLoading,
-  }), [loadingCount, startLoading, stopLoading]);
-
-  return (
-    <LoadingContext.Provider value={value}>
-      {children}
-    </LoadingContext.Provider>
+  const value = useMemo(
+    () => ({
+      isLoading: loadingCount > 0,
+      startLoading,
+      stopLoading,
+    }),
+    [loadingCount, startLoading, stopLoading]
   );
+
+  return <LoadingContext.Provider value={value}>{children}</LoadingContext.Provider>;
 };
 
 export const useLoading = () => {

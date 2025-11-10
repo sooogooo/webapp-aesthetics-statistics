@@ -30,20 +30,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     Object.entries(themeColors[settings.theme]).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-    
+
     // Apply font size
     document.body.classList.remove('font-size-sm', 'font-size-md', 'font-size-lg');
     document.body.classList.add(settings.fontSize);
-
   }, [settings]);
 
   const value = useMemo(() => ({ settings, setSettings }), [settings, setSettings]);
 
-  return (
-    <SettingsContext.Provider value={value}>
-      {children}
-    </SettingsContext.Provider>
-  );
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 };
 
 export const useSettings = () => {

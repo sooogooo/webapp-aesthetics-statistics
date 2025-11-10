@@ -18,13 +18,24 @@ const pageTitles: Record<Page, string> = {
   guide: '决策参谋',
 };
 
-const BreadcrumbLink: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({ onClick, children }) => (
+const BreadcrumbLink: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({
+  onClick,
+  children,
+}) => (
   <li>
     <div className="flex items-center">
-      <button onClick={onClick} className="text-sm font-medium text-[color:var(--color-text-muted)] hover:text-[color:rgb(var(--color-primary))] transition-colors">
+      <button
+        onClick={onClick}
+        className="text-sm font-medium text-[color:var(--color-text-muted)] hover:text-[color:rgb(var(--color-primary))] transition-colors"
+      >
         {children}
       </button>
-      <span className="material-symbols-outlined text-lg text-[color:var(--color-text-muted)] mx-1" aria-hidden="true">chevron_right</span>
+      <span
+        className="material-symbols-outlined text-lg text-[color:var(--color-text-muted)] mx-1"
+        aria-hidden="true"
+      >
+        chevron_right
+      </span>
     </div>
   </li>
 );
@@ -32,31 +43,41 @@ const BreadcrumbLink: React.FC<{ onClick: () => void; children: React.ReactNode 
 const BreadcrumbCurrent: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <li aria-current="page">
     <div className="flex items-center">
-      <span className="text-sm font-medium text-[color:var(--color-text-base)]">
-        {children}
-      </span>
+      <span className="text-sm font-medium text-[color:var(--color-text-base)]">{children}</span>
     </div>
   </li>
 );
 
-const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ currentPage, setCurrentPage, selectedDistribution }) => {
+const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
+  currentPage,
+  setCurrentPage,
+  selectedDistribution,
+}) => {
   // Hide breadcrumbs on dashboard, as it's the root
   if (currentPage === 'dashboard') {
-      return null;
+    return null;
   }
-  
+
   const path = () => {
     switch (currentPage) {
       case 'models':
         return [
-          <BreadcrumbLink key="dashboard" onClick={() => setCurrentPage('dashboard')}>{pageTitles.dashboard}</BreadcrumbLink>,
+          <BreadcrumbLink key="dashboard" onClick={() => setCurrentPage('dashboard')}>
+            {pageTitles.dashboard}
+          </BreadcrumbLink>,
           // Since there's no models list page, this link goes to the dashboard as the parent section.
-          <BreadcrumbLink key="models" onClick={() => setCurrentPage('dashboard')}>{pageTitles.models}</BreadcrumbLink>,
-          <BreadcrumbCurrent key="current">{selectedDistribution.name.split(' (')[0]}</BreadcrumbCurrent>,
+          <BreadcrumbLink key="models" onClick={() => setCurrentPage('dashboard')}>
+            {pageTitles.models}
+          </BreadcrumbLink>,
+          <BreadcrumbCurrent key="current">
+            {selectedDistribution.name.split(' (')[0]}
+          </BreadcrumbCurrent>,
         ];
       default:
         return [
-          <BreadcrumbLink key="dashboard" onClick={() => setCurrentPage('dashboard')}>{pageTitles.dashboard}</BreadcrumbLink>,
+          <BreadcrumbLink key="dashboard" onClick={() => setCurrentPage('dashboard')}>
+            {pageTitles.dashboard}
+          </BreadcrumbLink>,
           <BreadcrumbCurrent key="current">{pageTitles[currentPage]}</BreadcrumbCurrent>,
         ];
     }
@@ -64,9 +85,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ currentPage, setCurrentPage, 
 
   return (
     <nav className="mb-4" aria-label="Breadcrumb">
-      <ol className="inline-flex items-center">
-        {path()}
-      </ol>
+      <ol className="inline-flex items-center">{path()}</ol>
     </nav>
   );
 };
