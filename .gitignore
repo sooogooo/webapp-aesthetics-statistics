@@ -30,3 +30,13 @@ api/.env.local
 *.njsproj
 *.sln
 *.sw?
+
+# Testing artifacts
+coverage/
+test-results/
+playwright-report/
+.playwright/
+
+# Lighthouse CI
+.lighthouseci/
+lighthouseci/

@@ -54,7 +54,7 @@ const AppContent: React.FC = () => {
       try {
         // Load all groups in parallel (7 groups, 1-8KB each)
         const groupPromises = [1, 2, 3, 4, 5, 6, 7].map((groupNum) =>
-          import(`./data/distributions/group-${groupNum}.json`).then((m) => m.default),
+          import(`./data/distributions/group-${groupNum}.json`).then((m) => m.default)
         );
 
         const groups = await Promise.all(groupPromises);

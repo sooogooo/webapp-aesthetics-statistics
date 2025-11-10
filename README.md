@@ -2,6 +2,7 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 
 [![CI](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/ci.yml)
+[![E2E & Performance](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/e2e-performance.yml/badge.svg)](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/e2e-performance.yml)
 [![Deploy](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/deploy.yml/badge.svg)](https://github.com/your-username/webapp-aesthetics-statistics/actions/workflows/deploy.yml)
 [![codecov](https://codecov.io/gh/your-username/webapp-aesthetics-statistics/branch/main/graph/badge.svg)](https://codecov.io/gh/your-username/webapp-aesthetics-statistics)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -148,9 +149,26 @@ webapp-aesthetics-statistics/
 - `npm run build` - Build for production
 - `npm run build:analyze` - Build with bundle analysis
 - `npm run preview` - Preview production build
-- `npm test` - Run tests in watch mode
-- `npm run test:ui` - Run tests with UI
-- `npm run test:coverage` - Run tests with coverage report
+
+**Testing:**
+
+- `npm test` - Run unit tests in watch mode
+- `npm run test:ui` - Run unit tests with UI
+- `npm run test:run` - Run unit tests once
+- `npm run test:coverage` - Run unit tests with coverage report
+- `npm run test:e2e` - Run E2E tests with Playwright
+- `npm run test:e2e:ui` - Run E2E tests in UI mode
+- `npm run test:e2e:visual` - Run visual regression tests
+- `npm run test:e2e:report` - View E2E test report
+
+**Performance:**
+
+- `npm run perf` - Run Lighthouse performance analysis
+- `npm run perf:collect` - Collect Lighthouse data only
+- `npm run perf:assert` - Check performance budgets
+
+**Code Quality:**
+
 - `npm run lint` - Lint code with ESLint
 - `npm run lint:fix` - Fix linting issues
 - `npm run format` - Format code with Prettier
@@ -170,6 +188,15 @@ webapp-aesthetics-statistics/
 ✅ Learning paths and quizzes
 ✅ A/B test calculator
 ✅ Customizable themes and settings
+
+## Quality Assurance
+
+✅ 93.75% unit test coverage (Vitest)
+✅ 34+ E2E tests covering critical user flows (Playwright)
+✅ Visual regression testing for UI consistency
+✅ Automated performance monitoring (Lighthouse CI)
+✅ Performance budgets (80%+ scores, Core Web Vitals)
+✅ Git hooks for automated quality checks
 
 ## Security Features
 
