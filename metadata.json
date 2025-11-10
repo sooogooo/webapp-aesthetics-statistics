@@ -1,0 +1,7 @@
+{
+  "name": "Aesthetics Distribution Insights",
+  "description": "An interactive web application that explains key probability distributions and their practical applications in the medical aesthetics industry for business operations, consumer decision-making, and service improvement.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
