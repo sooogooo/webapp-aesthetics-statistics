@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -63,20 +63,12 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
   const alphaB = conversionsB + 1;
   const betaB = visitorsB - conversionsB + 1;
 
-  const runSimulation = () => {
+  const runSimulation = useCallback(() => {
     setIsLoading(true);
     setResult(null);
     // Using a timeout to allow UI to update to loading state
     setTimeout(() => {
-      const simulations = 20000;
-      let bWins = 0;
-
-      // Using inverse transform sampling, which is complex.
-      // A simpler, though less performant method, is rejection sampling.
-      // For a better user experience, we will use a Monte Carlo simulation.
-      // It requires a random beta variate generator.
-      // Since that is complex, we'll do a numerical integration which is more stable.
-
+      // Numerical integration for Bayesian A/B test
       let probBbetterThanA = 0;
       const step = 0.001;
       for (let x = 0; x < 1; x += step) {
@@ -99,11 +91,11 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
       });
       setIsLoading(false);
     }, 50);
-  };
+  }, [alphaA, betaA, alphaB, betaB]);
 
   useEffect(() => {
     runSimulation();
-  }, [visitorsA, conversionsA, visitorsB, conversionsB]);
+  }, [runSimulation]);
 
   const chartData = useMemo(() => {
     const labels = Array.from({ length: 101 }, (_, i) => (i / 100).toFixed(2));

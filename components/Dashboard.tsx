@@ -52,7 +52,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const kpiData = useMemo(() => {
+  // Generate KPI data once on mount to avoid impure useMemo
+  const [kpiData] = useState(() => {
     const newCustomers = 325 + Math.floor(Math.random() * 60 - 30); // 295 - 355
     const newCustTrend =
       newCustomers >= 325
@@ -81,20 +82,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
       association: { value: randomAssociation.name, trend: 'Top 1', modelId: randomAssociation.id },
       clv: { value: `¥${clv.toLocaleString()}`, trend: clvTrend, modelId: 43 },
     };
-  }, []);
+  });
 
+  // Memoize recommended models based on user history
   const recommendedModels = useMemo(() => {
     const viewedModelIds = new Set(history.viewedModelIds);
 
     if (viewedModelIds.size === 0) {
-      // For new users, recommend a representative set of models
-      const modelPool = [2, 36, 43, 44, 34, 35, 39, 40, 41, 46, 50, 51]; // Representative models
-      // Shuffle the pool to provide variety
-      for (let i = modelPool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [modelPool[i], modelPool[j]] = [modelPool[j], modelPool[i]];
-      }
-      return modelPool.slice(0, 4).map((id) => ({
+      // For new users, recommend a fixed set of core models
+      // Using a deterministic order to avoid impure useMemo
+      const modelPool = [2, 36, 43, 44]; // Top 4 representative models
+      return modelPool.map((id) => ({
         id,
         reason: '探索核心商业模型，开启您的数据驱动决策之旅。',
       }));
