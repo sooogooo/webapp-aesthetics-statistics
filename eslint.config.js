@@ -45,6 +45,12 @@ export default [
         HTMLDivElement: 'readonly',
         HTMLInputElement: 'readonly',
         HTMLCanvasElement: 'readonly',
+        HTMLVideoElement: 'readonly',
+        MediaStream: 'readonly',
+        MouseEvent: 'readonly',
+        Node: 'readonly',
+        Element: 'readonly',
+        getComputedStyle: 'readonly',
         // React globals
         React: 'readonly',
         JSX: 'readonly',
@@ -105,6 +111,16 @@ export default [
     rules: {
       'no-console': 'off', // Allow console in tests
       '@typescript-eslint/no-explicit-any': 'off', // Allow any in tests for mocking
+    },
+  },
+  {
+    // Node.js scripts configuration
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
     },
   },
   {

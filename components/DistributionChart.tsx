@@ -19,7 +19,6 @@ import { generateChartData } from '../data/chartData';
 import { useSettings } from '../contexts/SettingsContext';
 import ABTestCalculator from './ABTestCalculator';
 import { useChat } from '../contexts/ChatContext';
-import ChartControls from './DistributionChart/ChartControls';
 import { useChartInteraction } from '../hooks/useChartInteraction';
 
 ChartJS.register(
@@ -127,74 +126,23 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ distribution }) =
     if (distribution.id !== 9) setBetaParams({ alpha: 2, beta: 5 });
   }, [distribution.name, themeColors, chartParams]);
 
-  // Chart configuration with hover handling
-  const configureChartWithHover = (chartInfo: any) => {
-    if (!chartInfo) return null;
-    chartInfo.options.onHover = handleHover;
-    const interactiveModels = [1, 3, 9];
-    if (!interactiveModels.includes(distribution.id)) {
-      setHoverInfo(null);
-      return;
-    }
-
-    if (elements.length > 0 && chart) {
-      const { index, datasetIndex } = elements[0];
-      const canvas = chart.canvas;
-      const rect = canvas.getBoundingClientRect();
-
-      const xLabel = chart.data.labels![index] as string;
-      const yValue = chart.data.datasets[datasetIndex].data[index] as number;
-
-      let preliminaryText = '';
-      let fullPrompt = '';
-
-      switch (distribution.id) {
-        case 1: {
-          // Normal
-          const { mu, sigma } = normalParams;
-          preliminaryText = `在均值为 ${mu.toFixed(1)}, 标准差为 ${sigma.toFixed(1)} 的正态分布下, 数值 ${parseFloat(xLabel).toFixed(2)} 出现的概率密度约为 ${yValue.toFixed(3)}。`;
-          fullPrompt = `在“正态分布”图表中，我正观察一个均值为 ${mu.toFixed(1)}、标准差为 ${sigma.toFixed(1)} 的场景。鼠标悬停的数据点显示，当数值为 ${parseFloat(xLabel).toFixed(2)} 时，其概率密度约为 ${yValue.toFixed(3)}。请结合医美业务场景，深入解释这个数据点所代表的商业含义。`;
-          break;
-        }
-        case 3: {
-          // Poisson
-          const { lambda } = { lambda: poissonLambda };
-          preliminaryText = `当平均每小时事件数为 ${lambda.toFixed(1)} 时, 发生 ${xLabel} 次事件的概率是 ${(yValue * 100).toFixed(2)}%。`;
-          fullPrompt = `在“泊松分布”图表中，我正观察一个平均发生率为 ${lambda.toFixed(1)} 的场景。鼠标悬停的数据点显示，发生 ${xLabel} 次事件的概率是 ${(yValue * 100).toFixed(2)}%。请结合医美业务场景（如客户到店数），深入解释这个数据点所代表的商业含义。`;
-          break;
-        }
-        case 9: {
-          // Beta
-          const { alpha, beta } = betaParams;
-          preliminaryText = `在 α=${alpha.toFixed(1)}, β=${beta.toFixed(1)} 的贝塔分布下, 转化率等于 ${parseFloat(xLabel).toFixed(2)} 的可能性(概率密度)约为 ${yValue.toFixed(3)}。`;
-          fullPrompt = `在“贝塔分布”图表中，我正观察一个 α=${alpha.toFixed(1)}, β=${beta.toFixed(1)} 的场景（可以理解为 ${alpha - 1} 次成功, ${beta - 1} 次失败）。鼠标悬停的数据点显示，当真实转化率为 ${parseFloat(xLabel).toFixed(2)} 时，其概率密度约为 ${yValue.toFixed(3)}。请结合A/B测试或新项目评估的医美场景，深入解释这个数据点所代表的商业含义。`;
-          break;
-        }
-        default:
-          setHoverInfo(null);
-          return;
-      }
-
-      setHoverInfo({
-        x: rect.left + event.x,
-        y: rect.top + event.y,
-        text: preliminaryText,
-        fullPrompt: fullPrompt,
-      });
-    } else {
-      setHoverInfo(null);
-    }
-  };
-
   const currentChartInfo = useMemo(() => {
     if (!chartScenarios || chartScenarios.length === 0) return null;
     if (selectedScenarioIndex >= chartScenarios.length) return null;
 
-    const chart = chartScenarios[selectedScenarioIndex];
-    // Inject onHover and disable default tooltip
-    chart.options.onHover = handleHover;
-    if (!chart.options.plugins) chart.options.plugins = {};
-    chart.options.plugins.tooltip = { enabled: false };
+    const originalChart = chartScenarios[selectedScenarioIndex];
+    // Create a new chart config with onHover and disabled tooltip (don't mutate state)
+    const chart = {
+      ...originalChart,
+      options: {
+        ...originalChart.options,
+        onHover: handleHover,
+        plugins: {
+          ...originalChart.options.plugins,
+          tooltip: { enabled: false },
+        },
+      },
+    };
 
     return chart;
   }, [chartScenarios, selectedScenarioIndex, handleHover]);
