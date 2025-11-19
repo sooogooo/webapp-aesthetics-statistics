@@ -1,11 +1,6 @@
 import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import Sidebar from './components/Sidebar';
 import Chatbot from './components/Chatbot';
-import {
-  getDistributionIndex,
-  loadDistribution,
-  type DistributionIndexEntry,
-} from './services/distributionLoader';
 import type { Distribution } from './types';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import Header from './components/Header';

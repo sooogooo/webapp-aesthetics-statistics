@@ -3,6 +3,8 @@
  * This reduces initial bundle size by allowing lazy loading of distribution data
  */
 
+/* eslint-env node */
+
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

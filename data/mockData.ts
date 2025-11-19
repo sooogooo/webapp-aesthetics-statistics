@@ -35,12 +35,13 @@ export const generateMockData = (distributionName: string, count = 500): any[] =
         satisfactionScore: parseFloat(Math.min(5, Math.max(1, randomNormal(4.2, 0.5))).toFixed(1)),
       }));
 
-    case '帕累托分布':
-      let data = Array.from({ length: count }, (_, i) => ({
+    case '帕累托分布': {
+      const data = Array.from({ length: count }, (_, i) => ({
         customerId: `V${2001 + i}`,
         annualSpend: Math.round(randomPareto(1.16) * 1000) + 500,
       }));
       return data.sort((a, b) => b.annualSpend - a.annualSpend);
+    }
 
     case '泊松分布':
       return Array.from({ length: count }, (_, i) => ({
@@ -66,7 +67,7 @@ export const generateMockData = (distributionName: string, count = 500): any[] =
         };
       });
 
-    case 'K-均值聚类':
+    case 'K-均值聚类': {
       const clusters = [];
       for (let i = 0; i < count; i++) {
         const type = Math.random();
@@ -94,8 +95,9 @@ export const generateMockData = (distributionName: string, count = 500): any[] =
         }
       }
       return clusters;
+    }
 
-    case '联合分析':
+    case '联合分析': {
       const scenarios = [
         {
           scenario: 1,
@@ -137,6 +139,7 @@ export const generateMockData = (distributionName: string, count = 500): any[] =
           choice: Math.random() < s.utility / 10 ? 1 : 0,
         }))
       );
+    }
 
     case '主成分分析':
       return Array.from({ length: count }, (_, i) => {

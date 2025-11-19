@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { Distribution, Page } from '../types';
+import type { Distribution } from '../types';
 import DistributionChart from './DistributionChart';
 import { deepAnalysisData } from '../data/deepAnalysis';
 import { enhancedApplicationData } from '../data/enhancedApplications';

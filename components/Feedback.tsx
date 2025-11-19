@@ -13,7 +13,7 @@ type Rating = 'good' | 'bad' | null;
 
 const Feedback: React.FC<FeedbackProps> = ({
   contentId,
-  contentType,
+  contentType: _contentType,
   promptText = '内容质量如何？',
   className = '',
   variant = 'light',

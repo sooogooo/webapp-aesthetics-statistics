@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import type { Settings, Theme, FontSize, AiStyle, AiLength } from '../types';
+import type { Settings, Theme } from '../types';
 
 interface SettingsModalProps {
   isOpen: boolean;
