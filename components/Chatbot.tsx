@@ -26,7 +26,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
   const { startLoading, stopLoading } = useLoading();
   const lastTriggerRef = useRef(0);
 
-  const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY }), []);
+  const ai = useMemo(() => new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY }), []);
 
   const startNewChat = () => {
     const newChat = ai.chats.create({
