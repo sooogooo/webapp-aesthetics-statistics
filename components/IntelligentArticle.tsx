@@ -60,7 +60,7 @@ const ArticleGenerator: React.FC<{
         setError(null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const modelNames = distributions.map(d => d.name).join(', ');
             
             const prompt = `你是一位博学多才、适应性极强的世界级内容创作者和策略师，能够精准模仿各种写作风格。请根据以下详细要求，撰写一篇专业的医美行业专题文章，并提供三个备选标题。
@@ -247,7 +247,7 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
         setAiPopup(prev => prev ? { ...prev, loading: true, action: action, result: null } : null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             let prompt = '';
             
             switch(action) {
@@ -278,7 +278,7 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
         setLoadingAiResponseForApp(question);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `我正在阅读一篇关于医美商业统计学的文章，其中一个要点是关于“${context}”。针对这个要点，文章提出了一个引导思考的问题：“${question}”。请你作为AI专家，给我一个有深度的、启发性的回答。回答要精炼。`;
             const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
             setApplicationAiResponses(prev => ({ ...prev, [question]: response.text }));
@@ -297,7 +297,7 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
         setAlternativeTitles(null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `作为一名顶级的医美行业内容专家和商业策略师，请为当前显示的统计模型“${distribution.name}”生成一篇科普文章。
 
 **核心要求:**

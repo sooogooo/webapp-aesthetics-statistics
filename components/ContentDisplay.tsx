@@ -55,7 +55,7 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({ distribution, distribut
     startLoading();
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
         const prompt = `你是一位顶级的医美行业商业策略顾问和数据科学家。
         
         当前的模型是“${distribution.name}”，其核心思想是“${distribution.takeaway}”。

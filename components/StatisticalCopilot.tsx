@@ -188,7 +188,7 @@ const StatisticalCopilot: React.FC = () => {
         startLoading();
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const contents: any[] = [{ text: prompt }];
 
             if (uploadedFile) {

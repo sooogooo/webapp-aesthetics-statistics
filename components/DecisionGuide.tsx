@@ -158,7 +158,7 @@ const DecisionGuide: React.FC<DecisionGuideProps> = ({ distributions, learningPa
     const fetchDsQuestions = async () => {
         setIsLoadingDsQuestions(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `You are a senior data scientist and business strategist specializing in the medical aesthetics industry. Your task is to create a list of **specific, actionable, and representative** questions that a data scientist would ask to understand and optimize a medical aesthetics business. These questions should be **concrete and ready-to-use**, not generic templates or "fill-in-the-blank" style questions. They must reflect real-world business challenges.
 
 Your output must be a valid JSON array of objects. Each object represents a category and must have 'category' (string, in Chinese), 'icon' (a valid Google Material Symbols Outlined icon name), and 'questions' (an array of 3-5 specific string questions, in Chinese).
@@ -230,7 +230,7 @@ Example of the required JSON output format:
     const fetchAiSuggestions = async () => {
         setIsFetchingSuggestions(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `你是一位顶级的医美行业商业策略师。你的任务是生成发人深省的、可以用数据分析的商业问题。
 
 请生成一个包含4个独立商业问题的JSON数组。
@@ -275,7 +275,7 @@ Example of the required JSON output format:
         setResult(null);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             
             const modelList = distributions.map(d => ({ id: d.id, name: d.name, takeaway: d.takeaway }));
             const pathList = learningPaths.map(p => ({ id: p.id, title: p.title, audience: p.audience, description: p.description }));
@@ -434,7 +434,7 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
         setGeneratedAnswer(null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `You are a world-class data scientist and consultant for the medical aesthetics industry. A user is asking for an in-depth analysis of a specific business question.
 - The original question from your knowledge base is: "${activeQuestion.question}".
 - The user has provided the following additional context/data: "${userContext}".
