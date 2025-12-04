@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Distribution, Page } from '../types';
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type } from '@google/genai';
+import { geminiService } from '../services/geminiService';
 import DistributionChart from './DistributionChart';
 import { useLoading } from '../contexts/LoadingContext';
 import Feedback from './Feedback';
@@ -60,7 +61,6 @@ const ArticleGenerator: React.FC<{
         setError(null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const modelNames = distributions.map(d => d.name).join(', ');
             
             const prompt = `你是一位博学多才、适应性极强的世界级内容创作者和策略师，能够精准模仿各种写作风格。请根据以下详细要求，撰写一篇专业的医美行业专题文章，并提供三个备选标题。
@@ -105,7 +105,7 @@ const ArticleGenerator: React.FC<{
             };
 
 
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: prompt,
                 config: {
@@ -247,7 +247,6 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
         setAiPopup(prev => prev ? { ...prev, loading: true, action: action, result: null } : null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             let prompt = '';
             
             switch(action) {
@@ -263,7 +262,7 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
             }
             prompt = prompt.replace('{text}', text);
             
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+            const response = await geminiService.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
             setAiPopup(prev => prev ? { ...prev, loading: false, result: response.text } : null);
         } catch (error) {
             console.error("AI popup action failed:", error);
@@ -278,9 +277,8 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
         setLoadingAiResponseForApp(question);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `我正在阅读一篇关于医美商业统计学的文章，其中一个要点是关于“${context}”。针对这个要点，文章提出了一个引导思考的问题：“${question}”。请你作为AI专家，给我一个有深度的、启发性的回答。回答要精炼。`;
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+            const response = await geminiService.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
             setApplicationAiResponses(prev => ({ ...prev, [question]: response.text }));
         } catch (error) {
             console.error("AI追问失败:", error);
@@ -297,7 +295,6 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
         setAlternativeTitles(null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `作为一名顶级的医美行业内容专家和商业策略师，请为当前显示的统计模型“${distribution.name}”生成一篇科普文章。
 
 **核心要求:**
@@ -313,7 +310,7 @@ const IntelligentArticle: React.FC<IntelligentArticleProps> = ({ distribution, d
 4.  **格式**: 使用Markdown格式，结构清晰，可读性强。
 5.  **语言**: 专业、精炼、有说服力。`;
 
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: prompt,
             });

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type } from '@google/genai';
 import type { Distribution, LearningPath, Page } from '../types';
 import { useLoading } from '../contexts/LoadingContext';
+import { geminiService } from '../services/geminiService';
 import Feedback from './Feedback';
 import { decisionGuideData } from '../data/decisionGuide';
+import { validateFile, ALLOWED_IMAGE_TYPES, ALLOWED_DOCUMENT_TYPES, formatFileSize } from '../utils/fileValidation';
 
 interface DecisionGuideProps {
     distributions: Distribution[];
@@ -158,7 +160,6 @@ const DecisionGuide: React.FC<DecisionGuideProps> = ({ distributions, learningPa
     const fetchDsQuestions = async () => {
         setIsLoadingDsQuestions(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `You are a senior data scientist and business strategist specializing in the medical aesthetics industry. Your task is to create a list of **specific, actionable, and representative** questions that a data scientist would ask to understand and optimize a medical aesthetics business. These questions should be **concrete and ready-to-use**, not generic templates or "fill-in-the-blank" style questions. They must reflect real-world business challenges.
 
 Your output must be a valid JSON array of objects. Each object represents a category and must have 'category' (string, in Chinese), 'icon' (a valid Google Material Symbols Outlined icon name), and 'questions' (an array of 3-5 specific string questions, in Chinese).
@@ -191,7 +192,7 @@ Example of the required JSON output format:
   }
 ]`;
 
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
                 config: { responseMimeType: 'application/json' }
@@ -230,7 +231,6 @@ Example of the required JSON output format:
     const fetchAiSuggestions = async () => {
         setIsFetchingSuggestions(true);
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `你是一位顶级的医美行业商业策略师。你的任务是生成发人深省的、可以用数据分析的商业问题。
 
 请生成一个包含4个独立商业问题的JSON数组。
@@ -241,7 +241,7 @@ Example of the required JSON output format:
 
 只返回JSON数组，不带任何其他文本或markdown标记。`;
 
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
                 config: { responseMimeType: 'application/json' }
@@ -275,7 +275,6 @@ Example of the required JSON output format:
         setResult(null);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             
             const modelList = distributions.map(d => ({ id: d.id, name: d.name, takeaway: d.takeaway }));
             const pathList = learningPaths.map(p => ({ id: p.id, title: p.title, audience: p.audience, description: p.description }));
@@ -336,7 +335,7 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
                 });
             }
 
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: contents,
                 config: {
@@ -367,6 +366,15 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, isDsContext: boolean) => {
         const file = event.target.files?.[0];
         if (file) {
+            const allowedTypes = isDsContext ? ALLOWED_DOCUMENT_TYPES : ALLOWED_IMAGE_TYPES;
+            const validation = validateFile(file, { allowedTypes });
+
+            if (!validation.valid) {
+                alert(`文件验证失败：${validation.error}`);
+                event.target.value = '';
+                return;
+            }
+
             if (isDsContext) {
                 const base64 = await blobToBase64(file);
                 setContextFile({ base64, file });
@@ -434,7 +442,6 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
         setGeneratedAnswer(null);
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const prompt = `You are a world-class data scientist and consultant for the medical aesthetics industry. A user is asking for an in-depth analysis of a specific business question.
 - The original question from your knowledge base is: "${activeQuestion.question}".
 - The user has provided the following additional context/data: "${userContext}".
@@ -452,7 +459,7 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
                 });
             }
             
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: contents,
             });

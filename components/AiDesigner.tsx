@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
+import { Modality } from '@google/genai';
 import { useLoading } from '../contexts/LoadingContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import type { DesignHistoryItem } from '../types';
 import { promptData, modifierChips } from '../data/promptTemplates';
 import Feedback from './Feedback';
+import { geminiService } from '../services/geminiService';
+import { validateFile, ALLOWED_IMAGE_TYPES, formatFileSize } from '../utils/fileValidation';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -63,10 +65,17 @@ const AiDesigner: React.FC = () => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 4 * 1024 * 1024) { // 4MB limit for inline data
-        setError('参考图文件大小不能超过4MB。');
+      const validation = validateFile(file, {
+        maxSize: 4 * 1024 * 1024,
+        allowedTypes: ALLOWED_IMAGE_TYPES
+      });
+
+      if (!validation.valid) {
+        setError(validation.error || '文件验证失败');
+        if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
+
       try {
         const base64 = await blobToBase64(file);
         setReferenceImage({ base64, file });
@@ -87,13 +96,12 @@ const AiDesigner: React.FC = () => {
     setGeneratedImage(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
       let base64ImageBytes: string;
 
       if (referenceImage) {
         const generationPrompt = `Generate a new image of: "${finalPrompt}". Use the provided image as strong inspiration for the overall style, color palette, and composition. The new image should be professional, elegant, and suitable for a medical aesthetics clinic, evoking feelings of trust and beauty with soft, natural lighting.`;
-        
-        const response = await ai.models.generateContent({
+
+        const response = await geminiService.generateContent({
           model: 'gemini-2.5-flash-image',
           contents: {
             parts: [
@@ -105,7 +113,7 @@ const AiDesigner: React.FC = () => {
             responseModalities: [Modality.IMAGE],
           },
         });
-        
+
         const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData);
         if (imagePart?.inlineData) {
             base64ImageBytes = imagePart.inlineData.data;
@@ -114,7 +122,7 @@ const AiDesigner: React.FC = () => {
         }
       } else {
         const fullPrompt = `md_prompt: A professional, minimalist, elegant, clean, high-end image for a medical aesthetics clinic. ${finalPrompt}. The image should evoke feelings of trust, science, and beauty. Use soft, natural lighting.`;
-        const response = await ai.models.generateImages({
+        const response = await geminiService.generateImages({
           model: 'imagen-4.0-generate-001',
           prompt: fullPrompt,
           config: {
@@ -237,7 +245,7 @@ const AiDesigner: React.FC = () => {
                     className="mt-2 w-full flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-slate-300 rounded-md text-slate-500 hover:border-[color:rgb(var(--color-primary))] hover:text-[color:rgb(var(--color-primary))] transition"
                 >
                     <span className="material-symbols-outlined">add_photo_alternate</span>
-                    <span className="text-sm font-medium">选择图片 (最大4MB)</span>
+                    <span className="text-sm font-medium">选择图片 (最大 4MB, 支持 JPG/PNG/WEBP/GIF)</span>
                 </button>
                 )}
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />

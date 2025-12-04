@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import type { ChatMessage } from '../types';
 import ReactMarkdown from 'react-markdown';
+import { geminiService } from '../services/geminiService';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import { useLoading } from '../contexts/LoadingContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import Feedback from './Feedback';
+import { validateFile, ALLOWED_DOCUMENT_TYPES, formatFileSize } from '../utils/fileValidation';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -146,10 +147,23 @@ const StatisticalCopilot: React.FC = () => {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            const validation = validateFile(file, { allowedTypes: ALLOWED_DOCUMENT_TYPES });
+
+            if (!validation.valid) {
+                const errorMessage: ChatMessage = {
+                    role: 'model',
+                    text: `❌ **文件验证失败**\n\n${validation.error}\n\n请选择其他文件后重试。`,
+                    id: `copilot-err-${Date.now()}`
+                };
+                setMessages(prev => [...prev, errorMessage]);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
+
             setUploadedFile(file);
             const confirmationMessage: ChatMessage = {
                 role: 'model',
-                text: `✅ 文件 **${file.name}** 已准备就绪。\n\n现在，请在下方输入您的问题，或选择一个预设功能来开始分析。`,
+                text: `✅ 文件 **${file.name}** (${formatFileSize(file.size)}) 已准备就绪。\n\n现在，请在下方输入您的问题，或选择一个预设功能来开始分析。`,
                 id: `copilot-sys-${Date.now()}`
             };
             setMessages(prev => [...prev, confirmationMessage]);
@@ -188,7 +202,6 @@ const StatisticalCopilot: React.FC = () => {
         startLoading();
 
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
             const contents: any[] = [{ text: prompt }];
 
             if (uploadedFile) {
@@ -201,7 +214,7 @@ const StatisticalCopilot: React.FC = () => {
                 });
             }
 
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: { parts: contents },
                 config: {
