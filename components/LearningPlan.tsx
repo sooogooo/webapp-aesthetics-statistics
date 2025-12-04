@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { GoogleGenAI } from '@google/genai';
 import { useLoading } from '../contexts/LoadingContext';
+import { geminiService } from '../services/geminiService';
 
 interface PlanCategory {
     id: 'standard' | 'quick' | 'advanced';
@@ -51,8 +51,7 @@ const LearningPlan: React.FC = () => {
         setStage('plan');
         startLoading();
         try {
-            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
-            const response = await ai.models.generateContent({
+            const response = await geminiService.generateContent({
                 model: 'gemini-2.5-pro',
                 contents: category.prompt,
             });

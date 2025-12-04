@@ -8,8 +8,9 @@ import { generateMockData, convertToCSV } from '../data/mockData';
 import { useChat } from '../contexts/ChatContext';
 import ReactMarkdown from 'react-markdown';
 import Feedback from './Feedback';
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type } from '@google/genai';
 import { useLoading } from '../contexts/LoadingContext';
+import { geminiService } from '../services/geminiService';
 
 interface ContentDisplayProps {
   distribution: Distribution;
@@ -55,10 +56,9 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({ distribution, distribut
     startLoading();
 
     try {
-        const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_GENAI_API_KEY });
         const prompt = `你是一位顶级的医美行业商业策略顾问和数据科学家。
-        
-        当前的模型是“${distribution.name}”，其核心思想是“${distribution.takeaway}”。
+
+        当前的模型是"${distribution.name}"，其核心思想是"${distribution.takeaway}"。
 
         请基于此模型，为医美行业生成 **2个** 具体的、创新的、可操作的商业应用案例。
 
@@ -75,7 +75,7 @@ const ContentDisplay: React.FC<ContentDisplayProps> = ({ distribution, distribut
         ]
         `;
 
-        const response = await ai.models.generateContent({
+        const response = await geminiService.generateContent({
             model: 'gemini-2.5-pro',
             contents: prompt,
             config: {
