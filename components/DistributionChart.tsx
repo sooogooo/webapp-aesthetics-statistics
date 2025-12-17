@@ -40,7 +40,6 @@ interface DistributionChartProps {
 }
 
 const DistributionChart: React.FC<DistributionChartProps> = ({ distribution }) => {
-  const [chartScenarios, setChartScenarios] = useState<any[]>([]);
   const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
   const { settings } = useSettings();
   const chartRef = useRef<ChartJS>(null);
@@ -82,6 +81,8 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ distribution }) =
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+    // setClickInfo is a stable setter function from useChartInteraction hook
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clickInfo]);
 
   const themeColors = useMemo(() => {
@@ -100,6 +101,9 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ distribution }) =
       borderColor: `rgb(${rootStyle.getPropertyValue('--color-border').trim()})`,
       primaryColor: rootStyle.getPropertyValue('--color-primary').trim(),
     };
+    // Theme dependency is intentional - we want to recompute when theme changes via settings
+    // even though it reads from DOM, settings.theme triggers CSS variable updates
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.theme]);
 
   const chartParams = useMemo(() => {
@@ -115,16 +119,22 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ distribution }) =
     }
   }, [distribution.id, normalParams, poissonLambda, betaParams]);
 
-  useEffect(() => {
-    const scenarios = generateChartData(distribution.name, themeColors, chartParams);
-    setChartScenarios(scenarios || []);
-    setSelectedScenarioIndex(0);
+  // Generate chart scenarios using useMemo instead of useEffect to avoid setState in effect
+  const chartScenarios = useMemo(() => {
+    return generateChartData(distribution.name, themeColors, chartParams) || [];
+  }, [distribution.name, themeColors, chartParams]);
 
-    // Reset params for non-interactive charts
+  // Reset selected scenario index when distribution changes
+  useEffect(() => {
+    setSelectedScenarioIndex(0);
+  }, [distribution.name]);
+
+  // Reset params for non-interactive charts when distribution changes
+  useEffect(() => {
     if (distribution.id !== 1) setNormalParams({ mu: 0, sigma: 1 });
     if (distribution.id !== 3) setPoissonLambda(3);
     if (distribution.id !== 9) setBetaParams({ alpha: 2, beta: 5 });
-  }, [distribution.name, themeColors, chartParams]);
+  }, [distribution.id]);
 
   const currentChartInfo = useMemo(() => {
     if (!chartScenarios || chartScenarios.length === 0) return null;

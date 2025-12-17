@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChatMessage, Distribution, ChatHistoryItem } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -25,7 +25,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
   const { startLoading, stopLoading } = useLoading();
   const lastTriggerRef = useRef(0);
 
-  const startNewChat = () => {
+  const startNewChat = useCallback(() => {
     const newId = `chat_${Date.now()}`;
     setMessages([
       {
@@ -36,13 +36,13 @@ const Chatbot: React.FC<ChatbotProps> = ({ selectedDistribution }) => {
     ]);
     setCurrentChatId(newId);
     setActiveView('chat');
-  };
+  }, [selectedDistribution.name]);
 
   useEffect(() => {
     if (isOpen) {
       startNewChat();
     }
-  }, [isOpen, selectedDistribution, settings.aiStyle, settings.aiLength]);
+  }, [isOpen, selectedDistribution, settings.aiStyle, settings.aiLength, startNewChat]);
 
   useEffect(() => {
     if (inputTrigger > lastTriggerRef.current) {

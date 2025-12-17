@@ -33,7 +33,7 @@ const QuickReturn: React.FC<QuickReturnProps> = ({
       }
     }
     return null;
-  }, [history.viewedModelIds, currentPage]);
+  }, [history, currentPage]);
 
   const lastViewedModel = useMemo(() => {
     if (lastViewedModelId === null) return null;

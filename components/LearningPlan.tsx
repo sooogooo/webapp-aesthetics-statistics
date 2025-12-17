@@ -41,12 +41,10 @@ const planCategories: PlanCategory[] = [
 
 const LearningPlan: React.FC = () => {
   const [stage, setStage] = useState<'selection' | 'plan'>('selection');
-  const [selectedCategory, setSelectedCategory] = useState<PlanCategory | null>(null);
   const [generatedPlan, setGeneratedPlan] = useState<string>('');
   const { startLoading, stopLoading, isLoading } = useLoading();
 
   const generatePlan = async (category: PlanCategory) => {
-    setSelectedCategory(category);
     setGeneratedPlan('');
     setStage('plan');
     startLoading();

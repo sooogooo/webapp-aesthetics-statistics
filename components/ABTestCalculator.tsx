@@ -63,11 +63,12 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
   const alphaB = conversionsB + 1;
   const betaB = visitorsB - conversionsB + 1;
 
-  const runSimulation = useCallback(() => {
+  // Run simulation when alpha/beta values change
+  useEffect(() => {
     setIsLoading(true);
     setResult(null);
-    // Using a timeout to allow UI to update to loading state
-    setTimeout(() => {
+    // Using a timeout to allow UI to update to loading state before heavy computation
+    const timeoutId = setTimeout(() => {
       // Numerical integration for Bayesian A/B test
       let probBbetterThanA = 0;
       const step = 0.001;
@@ -91,11 +92,9 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
       });
       setIsLoading(false);
     }, 50);
-  }, [alphaA, betaA, alphaB, betaB]);
 
-  useEffect(() => {
-    runSimulation();
-  }, [runSimulation]);
+    return () => clearTimeout(timeoutId);
+  }, [alphaA, betaA, alphaB, betaB]);
 
   const chartData = useMemo(() => {
     const labels = Array.from({ length: 101 }, (_, i) => (i / 100).toFixed(2));
@@ -125,7 +124,7 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
         },
       ],
     };
-  }, [alphaA, betaA, alphaB, betaB, themeColors]);
+  }, [alphaA, betaA, alphaB, betaB, conversionsA, conversionsB, visitorsA, visitorsB, themeColors]);
 
   const chartOptions: any = {
     responsive: true,
