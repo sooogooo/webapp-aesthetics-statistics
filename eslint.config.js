@@ -51,6 +51,7 @@ export default [
         Node: 'readonly',
         Element: 'readonly',
         getComputedStyle: 'readonly',
+        SVGSVGElement: 'readonly',
         // React globals
         React: 'readonly',
         JSX: 'readonly',

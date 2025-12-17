@@ -21,6 +21,30 @@ const groupTitles: { [key: number]: string } = {
   7: '决策工具箱',
 };
 
+// NavItem component moved outside Sidebar to avoid recreation on every render
+const NavItem: React.FC<{
+  icon: string;
+  children: React.ReactNode;
+  isActive: boolean;
+  onClick: () => void;
+}> = ({ icon, children, isActive, onClick }) => {
+  return (
+    <li>
+      <button
+        onClick={onClick}
+        className={`w-full flex items-center space-x-3 px-2 py-2 rounded-md text-sm font-medium transition-colors ${
+          isActive
+            ? 'bg-[color:rgb(var(--color-primary)/0.1)] text-[color:rgb(var(--color-primary))]'
+            : 'text-[color:var(--color-text-base)] hover:bg-[color:var(--color-bg-muted)]'
+        }`}
+      >
+        <span className="material-symbols-outlined text-lg">{icon}</span>
+        <span>{children}</span>
+      </button>
+    </li>
+  );
+};
+
 const Sidebar: React.FC<SidebarProps> = ({
   distributions,
   selectedId,
@@ -75,29 +99,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const NavItem: React.FC<{ page: Page; icon: string; children: React.ReactNode }> = ({
-    page,
-    icon,
-    children,
-  }) => {
-    const isActive = currentPage === page;
-    return (
-      <li>
-        <button
-          onClick={() => handleSelectPage(page)}
-          className={`w-full flex items-center space-x-3 px-2 py-2 rounded-md text-sm font-medium transition-colors ${
-            isActive
-              ? 'bg-[color:rgb(var(--color-primary)/0.1)] text-[color:rgb(var(--color-primary))]'
-              : 'text-[color:var(--color-text-base)] hover:bg-[color:var(--color-bg-muted)]'
-          }`}
-        >
-          <span className="material-symbols-outlined text-lg">{icon}</span>
-          <span>{children}</span>
-        </button>
-      </li>
-    );
-  };
-
   const sidebarContent = (
     <>
       <div className="p-4 border-b border-[color:var(--color-border)]">
@@ -114,28 +115,60 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <nav className="px-4 py-3 border-b border-[color:var(--color-border)]">
         <ul className="space-y-1">
-          <NavItem page="dashboard" icon="dashboard">
+          <NavItem
+            icon="dashboard"
+            isActive={currentPage === 'dashboard'}
+            onClick={() => handleSelectPage('dashboard')}
+          >
             决策仪表盘
           </NavItem>
-          <NavItem page="models" icon="dataset">
+          <NavItem
+            icon="dataset"
+            isActive={currentPage === 'models'}
+            onClick={() => handleSelectPage('models')}
+          >
             数据模型
           </NavItem>
-          <NavItem page="copilot" icon="query_stats">
+          <NavItem
+            icon="query_stats"
+            isActive={currentPage === 'copilot'}
+            onClick={() => handleSelectPage('copilot')}
+          >
             智能统计
           </NavItem>
-          <NavItem page="paths" icon="school">
+          <NavItem
+            icon="school"
+            isActive={currentPage === 'paths'}
+            onClick={() => handleSelectPage('paths')}
+          >
             学习路径
           </NavItem>
-          <NavItem page="plan" icon="checklist">
+          <NavItem
+            icon="checklist"
+            isActive={currentPage === 'plan'}
+            onClick={() => handleSelectPage('plan')}
+          >
             我的学习计划
           </NavItem>
-          <NavItem page="guide" icon="lightbulb">
+          <NavItem
+            icon="lightbulb"
+            isActive={currentPage === 'guide'}
+            onClick={() => handleSelectPage('guide')}
+          >
             决策参谋
           </NavItem>
-          <NavItem page="designer" icon="palette">
+          <NavItem
+            icon="palette"
+            isActive={currentPage === 'designer'}
+            onClick={() => handleSelectPage('designer')}
+          >
             AI 设计室
           </NavItem>
-          <NavItem page="article" icon="article">
+          <NavItem
+            icon="article"
+            isActive={currentPage === 'article'}
+            onClick={() => handleSelectPage('article')}
+          >
             专题文章
           </NavItem>
         </ul>

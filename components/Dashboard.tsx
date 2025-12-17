@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Distribution, Page } from '../types';
 import { decisionGuideData } from '../data/decisionGuide';
 import { useUserHistory } from '../contexts/UserHistoryContext';
@@ -166,11 +166,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return Array.from(recommendations.values());
   }, [history, distributions]);
 
-  const decisionGuideSnippet = useMemo(() => {
+  const [decisionGuideSnippet] = useState(() => {
     return decisionGuideData[0].problems[
       Math.floor(Math.random() * decisionGuideData[0].problems.length)
     ];
-  }, []);
+  });
 
   return (
     <div className="space-y-10">
