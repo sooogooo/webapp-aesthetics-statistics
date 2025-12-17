@@ -25,7 +25,10 @@ const randomPoisson = (lambda = 5) => {
   return k - 1;
 };
 
-export const generateMockData = (distributionName: string, count = 500): any[] => {
+export const generateMockData = (
+  distributionName: string,
+  count = 500
+): Array<Record<string, string | number>> => {
   switch (distributionName.split(' ')[0]) {
     case '正态分布':
       return Array.from({ length: count }, (_, i) => ({
@@ -207,7 +210,7 @@ export const generateMockData = (distributionName: string, count = 500): any[] =
   }
 };
 
-export const convertToCSV = (data: any[]): string => {
+export const convertToCSV = (data: Array<Record<string, string | number>>): string => {
   if (data.length === 0) return '';
   const headers = Object.keys(data[0]);
   const rows = data.map((obj) =>

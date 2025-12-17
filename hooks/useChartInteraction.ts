@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { ChartJS } from 'chart.js';
+import type { ChartJS, ChartEvent, ActiveElement } from 'chart.js';
 
 interface NormalParams {
   mu: number;
@@ -36,7 +36,7 @@ export const useChartInteraction = (
   const [clickInfo, setClickInfo] = useState<ClickInfo | null>(null);
 
   const handleHover = useCallback(
-    (event: any, elements: any[], chart: ChartJS) => {
+    (event: ChartEvent, elements: ActiveElement[], chart: ChartJS) => {
       const interactiveModels = [1, 3, 9];
       if (!interactiveModels.includes(distributionId)) {
         setHoverInfo(null);
@@ -119,7 +119,7 @@ export const useChartInteraction = (
           'x' in rawValue &&
           'y' in rawValue
         ) {
-          const point = rawValue as { x: any; y: any };
+          const point = rawValue as { x: number | string | null; y: number | string | null };
           const xLabel = chart.options.scales?.x?.title?.text || 'X轴';
           const yLabel = chart.options.scales?.y?.title?.text || 'Y轴';
           pointDescription = `坐标为 (${xLabel}: ${point.x}, ${yLabel}: ${point.y}) 的数据点`;

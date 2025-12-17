@@ -52,6 +52,9 @@ export default [
         Element: 'readonly',
         getComputedStyle: 'readonly',
         SVGSVGElement: 'readonly',
+        SpeechRecognition: 'readonly',
+        SpeechRecognitionEvent: 'readonly',
+        SpeechRecognitionErrorEvent: 'readonly',
         // React globals
         React: 'readonly',
         JSX: 'readonly',

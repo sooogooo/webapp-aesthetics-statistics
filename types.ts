@@ -30,7 +30,7 @@ export interface ChatMessage {
   text: string;
   id?: string;
   fileInfo?: string;
-  chartData?: any;
+  chartData?: Record<string, unknown>;
 }
 
 export interface ChatHistoryItem {

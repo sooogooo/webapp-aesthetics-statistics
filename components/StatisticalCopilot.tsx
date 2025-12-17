@@ -19,6 +19,12 @@ import useLocalStorage from '../hooks/useLocalStorage';
 import Feedback from './Feedback';
 import { apiService } from '../services/api';
 
+interface ChartTemplate {
+  id: string;
+  name: string;
+  chartData: Record<string, unknown>;
+}
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -208,27 +214,15 @@ const categorizedPrompts = [
   },
 ];
 
-const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      resolve(base64String.split(',')[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
-
 const ChartTemplatesModal: React.FC<{
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  templates: any[];
-  setTemplates: (templates: any[]) => void;
+  templates: ChartTemplate[];
+  setTemplates: (templates: ChartTemplate[]) => void;
 }> = ({ isOpen, setIsOpen, templates, setTemplates }) => {
   if (!isOpen) return null;
 
-  const handleCopyJson = (chartData: any) => {
+  const handleCopyJson = (chartData: Record<string, unknown>) => {
     navigator.clipboard.writeText(JSON.stringify(chartData, null, 2));
     alert('图表JSON已复制到剪贴板！');
   };
@@ -303,7 +297,10 @@ const StatisticalCopilot: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const { startLoading, stopLoading } = useLoading();
-  const [savedTemplates, setSavedTemplates] = useLocalStorage<any[]>('chart-templates', []);
+  const [savedTemplates, setSavedTemplates] = useLocalStorage<ChartTemplate[]>(
+    'chart-templates',
+    []
+  );
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     [categorizedPrompts[0]?.category].filter(Boolean) as string[]
@@ -326,7 +323,7 @@ const StatisticalCopilot: React.FC = () => {
     }
   };
 
-  const handleSaveTemplate = (chartData: any) => {
+  const handleSaveTemplate = (chartData: Record<string, unknown>) => {
     const name = prompt('请输入模板名称:', `模板 ${new Date().toLocaleString()}`);
     if (name && name.trim()) {
       setSavedTemplates((prev) => [

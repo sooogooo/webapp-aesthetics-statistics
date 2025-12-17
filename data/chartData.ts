@@ -1,8 +1,34 @@
-import type { ChartOptions, ChartData } from 'chart.js';
+import type { ChartOptions } from 'chart.js';
 
-const randomDataCache = new Map<string, any>();
+interface ThemeColors {
+  textColorBase: string;
+  textColorMuted: string;
+  borderColor: string;
+  primaryColor: string;
+}
 
-const getBaseOptions = (title: string, colors: any): ChartOptions => {
+type ChartDataPoint = number | { x: number; y: number };
+
+interface ChartParams {
+  mu?: number;
+  sigma?: number;
+  lambda?: number;
+  alpha?: number;
+  beta?: number;
+  [key: string]: number | undefined;
+}
+
+// Utility type for writable ChartOptions (Chart.js types are readonly)
+type WritableChartOptions = ChartOptions & {
+  scales?: {
+    x?: { title?: { text?: string }; suggestedMin?: number; suggestedMax?: number };
+    y?: { title?: { text?: string }; suggestedMin?: number; suggestedMax?: number };
+  };
+};
+
+const randomDataCache = new Map<string, ChartDataPoint[]>();
+
+const getBaseOptions = (title: string, colors: ThemeColors): ChartOptions => {
   const baseRgbMatch = colors.textColorBase.match(/\d+/g);
   const baseRgb = baseRgbMatch ? baseRgbMatch.join(', ') : '23, 37, 84'; // Fallback
 
@@ -77,8 +103,8 @@ const getBaseOptions = (title: string, colors: any): ChartOptions => {
 
 const themedLineDataset = (
   label: string,
-  data: any[],
-  colors: any,
+  data: ChartDataPoint[],
+  colors: ThemeColors,
   options: { fill?: boolean; tension?: number; borderWidth?: number; stepped?: boolean } = {}
 ) => ({
   label,
@@ -91,7 +117,7 @@ const themedLineDataset = (
   stepped: options.stepped ?? false,
 });
 
-const themedBarDataset = (label: string, data: number[], colors: any) => ({
+const themedBarDataset = (label: string, data: number[], colors: ThemeColors) => ({
   label,
   data,
   backgroundColor: `rgba(${colors.primaryColor}, 0.6)`,
@@ -224,7 +250,7 @@ const sampleDirichlet = (alphas: number[]): number[] => {
   return samples.map((s) => s / sum);
 };
 
-const dirichletScenarios = (name: string, alphas: number[], themeColors: any) => {
+const dirichletScenarios = (name: string, alphas: number[], themeColors: ThemeColors) => {
   const primaryColor = themeColors.primaryColor;
   const secondaryColorRgbMatch = themeColors.textColorMuted.match(/\d+/g);
   const secondaryColorRgb = secondaryColorRgbMatch
@@ -240,7 +266,7 @@ const dirichletScenarios = (name: string, alphas: number[], themeColors: any) =>
   const samples = randomDataCache.get(cacheKey);
 
   const sampleData = {
-    labels: samples.map((_: any, i: number) => `样本 ${i + 1}`),
+    labels: samples.map((_, i: number) => `样本 ${i + 1}`),
     datasets: [
       {
         label: '类别 A',
@@ -333,7 +359,11 @@ const generateCorrelatedNormalData = (
   return data;
 };
 
-export const generateChartData = (distributionName: string, themeColors: any, params: any = {}) => {
+export const generateChartData = (
+  distributionName: string,
+  themeColors: ThemeColors,
+  params: ChartParams = {}
+) => {
   // FIX: Reformat space-separated color string to comma-separated for valid rgba() syntax.
   themeColors = { ...themeColors, primaryColor: themeColors.primaryColor.split(' ').join(', ') };
 
@@ -348,7 +378,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       const { mu = 0, sigma = 1 } = params;
       const normalLabels = Array.from({ length: 161 }, (_, i) => (-10 + i * 0.125).toFixed(3));
       const normalData = normalLabels.map((x) => normalPDF(parseFloat(x), mu, sigma));
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '数值';
       currentOptions.scales.y.title.text = '概率密度';
       currentOptions.scales.y.suggestedMax = Math.max(
@@ -368,7 +398,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '帕累托分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '客户分层';
       currentOptions.scales.y.title.text = '贡献度 (%)';
       currentOptions.scales.y.suggestedMax = 100;
@@ -398,7 +428,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       const maxK = Math.max(15, Math.ceil(lambda + 5 * Math.sqrt(lambda))); // Show relevant range
       const poissonLabels = Array.from({ length: maxK + 1 }, (_, i) => i.toString());
       const poissonData = poissonLabels.map((k) => poissonPMF(parseInt(k), lambda));
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '每小时事件数';
       currentOptions.scales.y.title.text = '概率';
       currentOptions.scales.y.suggestedMax = Math.max(
@@ -418,7 +448,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '对数正态分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '消费金额';
       currentOptions.scales.y.title.text = '概率密度';
       return [
@@ -443,7 +473,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '指数分布': {
-      const options = getBaseOptions(distributionName, themeColors) as any;
+      const options = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       options.scales.x.title.text = '时间间隔';
       options.scales.y.title.text = '概率密度';
       const expLabels = createLabels(0, 5, 0.25);
@@ -455,7 +485,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       return [{ name: '默认视图', type: 'line', options, data }];
     }
     case '二项分布': {
-      const options = getBaseOptions(distributionName, themeColors) as any;
+      const options = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       options.scales.y.title.text = '概率';
       options.scales.x.title.text = '成功次数 (共10次试验)';
       const data = {
@@ -471,7 +501,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       return [{ name: '默认视图', type: 'bar', options, data }];
     }
     case '威布尔分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '时间 / 寿命';
       currentOptions.scales.y.title.text = '概率密度';
       currentOptions.scales.y.suggestedMax = 3.0; // Set a suggested max for stability
@@ -525,7 +555,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '伽马分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '等待时间';
       currentOptions.scales.y.title.text = '概率密度';
       const gammaLabels = createLabels(0, 10, 0.25);
@@ -578,7 +608,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '贝塔分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '概率值 (0-1)';
       currentOptions.scales.y.title.text = '概率密度';
       currentOptions.scales.y.suggestedMax = 5.0;
@@ -604,7 +634,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '均匀分布': {
-      const options = getBaseOptions(distributionName, themeColors) as any;
+      const options = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       options.scales.y = { ...options.scales.y, min: 0, max: 1.2, ticks: { display: false } };
       const data = {
         labels: ['a', 'b'],
@@ -629,7 +659,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '负二项分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '总咨询客户数 (目标成交3个)';
       return [
         {
@@ -659,7 +689,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '超几何分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '抽中VIP数 (抽20人)';
       return [
         {
@@ -676,7 +706,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '多项分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '项目选择';
       currentOptions.scales.y.title.text = '选择比例 (%)';
       return [
@@ -727,7 +757,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '卡方分布': {
-      const chartOptions = getBaseOptions(distributionName, themeColors) as any;
+      const chartOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       return [
         {
           name: 'df=2',
@@ -787,7 +817,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '三角分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '项目耗时 (分钟)';
       return [
         {
@@ -804,7 +834,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '齐夫定律': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '项目热门度排名';
       currentOptions.scales.y.title.text = '月销量';
       return [
@@ -820,7 +850,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '幂律分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '客户价值分层';
       currentOptions.scales.y.title.text = '贡献营收占比 (%)';
       currentOptions.scales.y.type = 'logarithmic';
@@ -943,7 +973,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '本福特定律': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.y.title.text = '出现概率 (%)';
       return [
         {
@@ -974,7 +1004,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
         ...dirichletScenarios('偏好A', [10, 2, 2], themeColors),
       ];
     case '多变量正态分布': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '变量 X (例如：客单价)';
       currentOptions.scales.y.title.text = '变量 Y (例如：满意度)';
 
@@ -1059,7 +1089,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '马尔可夫链': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.y.title.text = '客户比例 (%)';
       return [
         {
@@ -1075,7 +1105,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
     }
     case '案例1':
     case '模型组合': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '预测年利润 (万元)';
       return [
         {
@@ -1092,7 +1122,10 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
     case '案例2': {
       // VIP Churn Prediction
       // Chart 1: Pareto for VIP Identification
-      const paretoOptions = getBaseOptions('VIP客户营收贡献 (帕累托分析)', themeColors) as any;
+      const paretoOptions = getBaseOptions(
+        'VIP客户营收贡献 (帕累托分析)',
+        themeColors
+      ) as WritableChartOptions;
       paretoOptions.scales.x.title.text = '客户分层';
       paretoOptions.scales.y.title.text = '营收贡献 (%)';
       const paretoData = {
@@ -1101,7 +1134,10 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       };
 
       // Chart 2: Churn Risk Curve
-      const churnOptions = getBaseOptions('VIP客户流失风险曲线 (指数分布模拟)', themeColors) as any;
+      const churnOptions = getBaseOptions(
+        'VIP客户流失风险曲线 (指数分布模拟)',
+        themeColors
+      ) as WritableChartOptions;
       churnOptions.scales.x.title.text = '距离上次消费天数';
       churnOptions.scales.y.title.text = '未流失概率';
       if (churnOptions.scales?.y) churnOptions.scales.y.max = 1;
@@ -1121,7 +1157,10 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
     case '案例3': {
       // A/B Test ROI Evaluation
       // Chart 1: Beta Distribution for Conversion Rate (using Normal Approximation for stability)
-      const betaOptions = getBaseOptions('A/B测试转化率后验分布 (正态近似)', themeColors) as any;
+      const betaOptions = getBaseOptions(
+        'A/B测试转化率后验分布 (正态近似)',
+        themeColors
+      ) as WritableChartOptions;
       betaOptions.scales.x.title.text = '转化率';
       betaOptions.scales.y.title.text = '概率密度';
       if (betaOptions.plugins?.legend) {
@@ -1164,7 +1203,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       };
 
       // Chart 2: ROI Simulation Histogram
-      const roiOptions = getBaseOptions('ROI模拟结果分布', themeColors) as any;
+      const roiOptions = getBaseOptions('ROI模拟结果分布', themeColors) as WritableChartOptions;
       roiOptions.scales.x.title.text = '预期ROI (%)';
       roiOptions.scales.y.title.text = '模拟次数';
       if (roiOptions.plugins?.legend) {
@@ -1189,7 +1228,10 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
     }
     case '思维框架': {
       // For "思维框架：贝叶斯推断"
-      const bayesOptions = getBaseOptions('贝叶斯更新：转化率认知变化', themeColors) as any;
+      const bayesOptions = getBaseOptions(
+        '贝叶斯更新：转化率认知变化',
+        themeColors
+      ) as WritableChartOptions;
       bayesOptions.scales.x.title.text = '转化率';
       bayesOptions.scales.y.title.text = '信念强度 (概率密度)';
       if (bayesOptions.plugins?.legend) {
@@ -1238,7 +1280,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
     }
     case 'RFM模型': {
       // RFM
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '客户分群';
       currentOptions.scales.y.title.text = '客户数量';
       return [
@@ -1254,7 +1296,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '线性回归': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '广告投入 (万元)';
       currentOptions.scales.y.title.text = '新客数量';
       const cacheKey = 'scatterData_37';
@@ -1300,7 +1342,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '逻辑回归': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '优惠力度 (%)';
       currentOptions.scales.y.title.text = '购买概率';
       if (currentOptions.scales?.y) currentOptions.scales.y.max = 1;
@@ -1348,7 +1390,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '随机森林': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.indexAxis = 'y';
       currentOptions.scales.x.title.text = '特征重要性';
       currentOptions.scales.y.title.text = '影响因素';
@@ -1365,7 +1407,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case 'K-均值聚类': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '消费频率';
       currentOptions.scales.y.title.text = '消费总额';
       const cacheKey_c1 = 'kmeans_c1_40';
@@ -1423,7 +1465,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '时间序列预测': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '月份';
       currentOptions.scales.y.title.text = '营收 (万元)';
       const historical = [20, 22, 25, 23, 28, 30, 35, 33, 38, 40, 45, 42];
@@ -1483,7 +1525,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '朴素贝叶斯分类器': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.y.title.text = '预测概率';
       currentOptions.scales.x.title.text = '客户画像';
       return [
@@ -1499,7 +1541,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '客户终身价值': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '客户分群 (基于早期行为)';
       currentOptions.scales.y.title.text = '预测终身价值 (元)';
       return [
@@ -1517,7 +1559,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '市场购物篮分析': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '项目关联规则';
       currentOptions.scales.y.title.text = '置信度 (%)';
       return [
@@ -1538,7 +1580,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '生存分析': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '距上次消费天数';
       currentOptions.scales.y.title.text = '客户留存率 (%)';
       return [
@@ -1559,7 +1601,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '联合分析': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.indexAxis = 'y';
       currentOptions.scales.x.title.text = '相对重要性';
       currentOptions.scales.y.title.text = '产品属性';
@@ -1576,7 +1618,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '主成分分析': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '主成分1 (服务与价格)';
       currentOptions.scales.y.title.text = '主成分2 (效果与品牌)';
       const cacheKey_c1 = 'pca_c1_48';
@@ -1618,7 +1660,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '支持向量机': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '特征 A (消费频率)';
       currentOptions.scales.y.title.text = '特征 B (平均客单价)';
       const cacheKey_c1 = 'svm_c1_49';
@@ -1675,7 +1717,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
       ];
     }
     case '增益模型': {
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '客户群体';
       currentOptions.scales.y.title.text = '营销增益 (Uplift)';
       return [
@@ -1693,7 +1735,7 @@ export const generateChartData = (distributionName: string, themeColors: any, pa
     case 'Cox比例风险模型': {
       const highRisk = [100, 90, 70, 40, 20, 10];
       const lowRisk = [100, 98, 95, 90, 85, 80];
-      const currentOptions = getBaseOptions(distributionName, themeColors) as any;
+      const currentOptions = getBaseOptions(distributionName, themeColors) as WritableChartOptions;
       currentOptions.scales.x.title.text = '时间 (月)';
       currentOptions.scales.y.title.text = '留存概率';
       return [

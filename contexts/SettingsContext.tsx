@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import type { Settings, Theme, FontSize, AiStyle, AiLength } from '../types';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import type { Settings, Theme } from '../types';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface SettingsContextType {

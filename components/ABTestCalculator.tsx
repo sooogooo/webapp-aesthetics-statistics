@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,6 +12,21 @@ import {
   Filler,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
+import type { ChartOptions } from 'chart.js';
+
+interface ThemeColors {
+  textColorBase: string;
+  textColorMuted: string;
+  borderColor: string;
+  primaryColor: string;
+}
+
+interface ABTestResult {
+  probBbetterThanA: number;
+  expectedA: number;
+  expectedB: number;
+  expectedLift: number;
+}
 
 ChartJS.register(
   CategoryScale,
@@ -50,12 +65,12 @@ const betaPDF = (x: number, a: number, b: number): number => {
   return (Math.pow(x, a - 1) * Math.pow(1 - x, b - 1)) / betaFunc;
 };
 
-const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
+const ABTestCalculator: React.FC<{ themeColors: ThemeColors }> = ({ themeColors }) => {
   const [visitorsA, setVisitorsA] = useState(100);
   const [conversionsA, setConversionsA] = useState(10);
   const [visitorsB, setVisitorsB] = useState(100);
   const [conversionsB, setConversionsB] = useState(15);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ABTestResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const alphaA = conversionsA + 1;
@@ -65,10 +80,10 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
 
   // Run simulation when alpha/beta values change
   useEffect(() => {
-    setIsLoading(true);
-    setResult(null);
     // Using a timeout to allow UI to update to loading state before heavy computation
     const timeoutId = setTimeout(() => {
+      setResult(null);
+      setIsLoading(true);
       // Numerical integration for Bayesian A/B test
       let probBbetterThanA = 0;
       const step = 0.001;
@@ -126,7 +141,7 @@ const ABTestCalculator: React.FC<{ themeColors: any }> = ({ themeColors }) => {
     };
   }, [alphaA, betaA, alphaB, betaB, conversionsA, conversionsB, visitorsA, visitorsB, themeColors]);
 
-  const chartOptions: any = {
+  const chartOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {

@@ -24,6 +24,30 @@ interface AiQuestionCategory {
   questions: string[];
 }
 
+interface RecommendedModel {
+  id?: number;
+  name: string;
+  reason: string;
+}
+
+interface RecommendedPath {
+  id?: number;
+  name: string;
+  reason: string;
+}
+
+interface AnalysisResult {
+  problemSummary: string;
+  recommendedModels: RecommendedModel[];
+  recommendedPaths?: RecommendedPath[];
+  nextSteps?: string[];
+}
+
+interface WindowWithSpeechRecognition {
+  SpeechRecognition?: typeof SpeechRecognition;
+  webkitSpeechRecognition?: typeof SpeechRecognition;
+}
+
 const LoadingSkeleton: React.FC = () => (
   <div className="animate-pulse space-y-8">
     <div>
@@ -151,7 +175,7 @@ const DecisionGuide: React.FC<DecisionGuideProps> = ({
   setSelectedId,
 }) => {
   const [problem, setProblem] = useState('');
-  const [result, setResult] = useState<any | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { startLoading, stopLoading, isLoading } = useLoading();
   const [resultId, setResultId] = useState<string | null>(null);
@@ -164,7 +188,7 @@ const DecisionGuide: React.FC<DecisionGuideProps> = ({
   const [showCamera, setShowCamera] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // State for the new section
   const [dsQuestions, setDsQuestions] = useState<AiQuestionCategory[]>([]);
@@ -380,7 +404,9 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
         required: ['problemSummary', 'recommendedModels', 'nextSteps'],
       };
 
-      const contents: { parts: any[] } = { parts: [{ text: prompt }] };
+      const contents: {
+        parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>;
+      } = { parts: [{ text: prompt }] };
       if (uploadedImage) {
         contents.parts.unshift({
           inlineData: {
@@ -454,7 +480,8 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
       return;
     }
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as WindowWithSpeechRecognition).SpeechRecognition ||
+      (window as WindowWithSpeechRecognition).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert('抱歉，您的浏览器不支持语音识别。');
       return;
@@ -464,11 +491,11 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
     recognition.interimResults = false;
     recognition.onstart = () => setIsRecording(true);
     recognition.onend = () => setIsRecording(false);
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error', event.error);
       setIsRecording(false);
     };
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
       setProblem((prev) => (prev ? `${prev} ${transcript}` : transcript));
     };
@@ -501,7 +528,9 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
 - Provide actionable steps, frameworks, and explain what data would be needed and what statistical models (e.g., **RFM模型**, **生存分析**) could be applied.
 - Your entire response must be in Chinese.`;
 
-      const contents: { parts: any[] } = { parts: [{ text: prompt }] };
+      const contents: {
+        parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>;
+      } = { parts: [{ text: prompt }] };
       if (contextFile) {
         contents.parts.unshift({
           inlineData: {
@@ -685,7 +714,7 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
                   推荐的数据模型
                 </h2>
                 <div className="space-y-4">
-                  {result.recommendedModels.map((model: any) => (
+                  {result.recommendedModels.map((model: RecommendedModel) => (
                     <button
                       key={model.modelId}
                       onClick={() => handleNavigation('models', model.modelId)}
@@ -708,7 +737,7 @@ The entire JSON response, including all keys and values, must be in Chinese.`;
                     推荐的学习路径
                   </h2>
                   <div className="space-y-4">
-                    {result.recommendedPaths.map((path: any) => (
+                    {result.recommendedPaths.map((path: RecommendedPath) => (
                       <button
                         key={path.pathId}
                         onClick={() => handleNavigation('paths')}
