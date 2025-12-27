@@ -3,8 +3,6 @@
  * This reduces initial bundle size by allowing lazy loading of distribution data
  */
 
-/* eslint-env node */
-
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -62,7 +60,7 @@ Object.keys(groups).forEach((groupNum) => {
   writeFileSync(
     join(outputDir, `group-${groupNum}.json`),
     JSON.stringify(groupData, null, 2),
-    'utf-8',
+    'utf-8'
   );
   console.log(`✓ Created group-${groupNum}.json with ${groupData.length} distributions`);
 });
