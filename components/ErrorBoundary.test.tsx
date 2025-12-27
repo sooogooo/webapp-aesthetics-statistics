@@ -10,6 +10,16 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   return <div>No error</div>;
 };
 
+// Component that throws an error without a message
+const ThrowErrorNoMessage = ({ shouldThrow }: { shouldThrow: boolean }) => {
+  if (shouldThrow) {
+    const error = new Error();
+    error.message = '';
+    throw error;
+  }
+  return <div>No error</div>;
+};
+
 describe('ErrorBoundary', () => {
   // Suppress console.error for these tests
   const originalError = console.error;
@@ -84,5 +94,15 @@ describe('ErrorBoundary', () => {
 
     refreshButton.click();
     expect(mockReload).toHaveBeenCalled();
+  });
+
+  it('should display fallback error message when error has no message', () => {
+    render(
+      <ErrorBoundary>
+        <ThrowErrorNoMessage shouldThrow={true} />
+      </ErrorBoundary>
+    );
+
+    expect(screen.getByText('应用程序遇到了一个错误')).toBeInTheDocument();
   });
 });

@@ -44,6 +44,15 @@ describe('API Service', () => {
 
       await expect(apiService.chat({ message: 'Hello' })).rejects.toThrow();
     });
+
+    it('should use fallback error message when error.error is undefined', async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({}), // No error field
+      });
+
+      await expect(apiService.chat({ message: 'Hello' })).rejects.toThrow('发送消息失败');
+    });
   });
 
   describe('generateImage', () => {
@@ -88,6 +97,17 @@ describe('API Service', () => {
       await expect(
         apiService.generateImage({ prompt: 'test', aspectRatio: '1:1' })
       ).rejects.toThrow('网络请求失败');
+    });
+
+    it('should use fallback error message when error.error is undefined', async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({}), // No error field
+      });
+
+      await expect(
+        apiService.generateImage({ prompt: 'test', aspectRatio: '1:1' })
+      ).rejects.toThrow('生成图片失败');
     });
   });
 
@@ -142,6 +162,21 @@ describe('API Service', () => {
           prompt: 'test',
         })
       ).rejects.toThrow('网络请求失败');
+    });
+
+    it('should use fallback error message when error.error is undefined', async () => {
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({}), // No error field
+      });
+
+      await expect(
+        apiService.analyzeFile({
+          fileContent: 'content',
+          fileName: 'test.txt',
+          prompt: 'test',
+        })
+      ).rejects.toThrow('分析文件失败');
     });
   });
 
